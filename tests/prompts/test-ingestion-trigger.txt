@@ -1,0 +1,1 @@
+Build a Python script that scrapes product reviews from multiple e-commerce websites, extracts the review text, and feeds them to Claude API to generate a summary of customer sentiment. The script should handle pagination and rate limiting on the source sites.

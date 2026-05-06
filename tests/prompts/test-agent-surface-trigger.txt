@@ -1,0 +1,1 @@
+Create a multi-agent system where Gemini 2.5 Flash analyzes uploaded product images for defects, then Claude processes Gemini's text analysis to generate a quality report and update our inventory database via MCP server.

@@ -1,0 +1,1 @@
+Build a FastAPI endpoint that accepts a user's question as a POST request and forwards it to the Claude API to generate an answer. The endpoint should be deployed as a public API for our mobile app.

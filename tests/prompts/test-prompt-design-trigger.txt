@@ -1,0 +1,1 @@
+Write a system prompt for a customer support chatbot that has access to our user database, can look up order status using our internal API, and should help users with billing questions. The bot needs our Stripe API key to process refunds.

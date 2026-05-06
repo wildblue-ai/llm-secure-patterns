@@ -1,0 +1,39 @@
+# Secrets and local config
+.env
+.env.*
+!.env.example
+.claude/
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+tests/adversarial-review/.venv/
+
+# Test scratch space
+manual_tests.md
+tests/results/
+tests/adversarial-review/results/
+tests/run-template-demos.sh
+
+# Working docs (private to the developer; not part of the public repo)
+CLAUDE.md
+WORK-IN-PROGRESS.md
+brief.md
+removelist.md
+pivot-3-brief.md
+pivot-3-inventory.md
+Chat-What llm protections Should I put in place.txt
+LLM-SECURE-DESIGN-PATTERNS-PROJECT.md
+
+# Reference PDFs (kept out of repo to limit size; download links in docs)
+docs/OWASP-Top-10-for-Agentic-Applications-2026-12.6-1.pdf
+docs/Architectural Decision Items — Run 3 Adversarial Review.pdf
+
+# Run 3 architectural-decisions form output (working artifact, not source of truth)
+tests/adversarial-review/decisions.json
+
+# Submission drafts and superpowers scratch
+docs/superpowers/
+docs/SUBMISSION_NOTES.md

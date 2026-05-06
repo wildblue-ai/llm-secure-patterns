@@ -1,0 +1,1 @@
+Build a pipeline where we use GPT-4o to transcribe and summarize customer voicemails, then pass those summaries to Claude to draft response emails and send them via our email API. The voicemails come from an external phone system we don't control.

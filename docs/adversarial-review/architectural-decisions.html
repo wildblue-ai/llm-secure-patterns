@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architectural Decision Items — Run 3 Adversarial Review</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; color: #1a1a1a; line-height: 1.5; }
+
+  header { background: #1a1a2e; color: #fff; padding: 24px 32px; }
+  header h1 { font-size: 1.4rem; font-weight: 600; }
+  header p { color: #aab; font-size: 0.85rem; margin-top: 6px; }
+
+  .meta { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 14px 32px; font-size: 0.82rem; color: #555; display: flex; gap: 32px; flex-wrap: wrap; }
+  .meta strong { color: #1a1a1a; }
+
+  .instructions { background: #fffbea; border-left: 4px solid #f0b429; padding: 14px 20px; margin: 24px 32px 0; border-radius: 4px; font-size: 0.875rem; }
+  .instructions strong { display: block; margin-bottom: 6px; }
+
+  .priority-note { background: #e8f4fd; border-left: 4px solid #2196f3; padding: 14px 20px; margin: 16px 32px 24px; border-radius: 4px; font-size: 0.875rem; }
+  .priority-note strong { display: block; margin-bottom: 4px; }
+
+  .items { padding: 0 32px 48px; display: grid; gap: 16px; }
+
+  .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+  .card.quick-win { border-left: 4px solid #4caf50; }
+  .card.judgment { border-left: 4px solid #ff9800; }
+
+  .card-header { display: flex; align-items: baseline; gap: 12px; padding: 14px 20px 10px; border-bottom: 1px solid #f0f0f0; }
+  .card-num { font-size: 0.75rem; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.05em; min-width: 24px; }
+  .card-title { font-size: 1rem; font-weight: 600; flex: 1; }
+  .badge { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .badge-win { background: #e8f5e9; color: #2e7d32; }
+  .badge-judgment { background: #fff3e0; color: #e65100; }
+  .skill-tag { font-size: 0.72rem; background: #eeeeee; color: #555; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+
+  .card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  @media (max-width: 700px) { .card-body { grid-template-columns: 1fr; } }
+
+  .col { padding: 14px 20px; }
+  .col + .col { border-left: 1px solid #f0f0f0; }
+  .col-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 6px; }
+  .col p { font-size: 0.875rem; color: #333; }
+
+  .resolution { padding: 14px 20px; border-top: 1px solid #f0f0f0; background: #fafafa; }
+  .resolution .col-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #2196f3; margin-bottom: 6px; }
+  .resolution p { font-size: 0.875rem; color: #1a1a1a; }
+
+  .decision-row { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .decision-label { font-size: 0.75rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.05em; }
+  .decision-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { border: 1px solid #ccc; background: #fff; padding: 5px 14px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.15s; }
+  .btn:hover { background: #f0f0f0; }
+  .btn.accept { border-color: #4caf50; color: #2e7d32; }
+  .btn.accept.active { background: #4caf50; color: #fff; border-color: #4caf50; }
+  .btn.modify { border-color: #ff9800; color: #e65100; }
+  .btn.modify.active { background: #ff9800; color: #fff; border-color: #ff9800; }
+  .btn.defer { border-color: #9e9e9e; color: #555; }
+  .btn.defer.active { background: #9e9e9e; color: #fff; border-color: #9e9e9e; }
+  .notes-input { border: 1px solid #ddd; border-radius: 4px; padding: 4px 10px; font-size: 0.8rem; flex: 1; min-width: 200px; font-family: inherit; }
+  .notes-input:focus { outline: none; border-color: #2196f3; }
+
+  .summary-bar { position: sticky; bottom: 0; background: #1a1a2e; color: #fff; padding: 12px 32px; font-size: 0.85rem; display: flex; gap: 24px; flex-wrap: wrap; }
+  .summary-bar span { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .dot-accept { background: #4caf50; }
+  .dot-modify { background: #ff9800; }
+  .dot-defer { background: #9e9e9e; }
+  .dot-pending { background: #555; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Architectural Decision Items — Run 3 Adversarial Review</h1>
+  <p>Design questions requiring a decision before code changes. 16 items across 5 skills.</p>
+</header>
+
+<div class="meta">
+  <div><strong>Source:</strong> Run 3 findings, 2026-04-14</div>
+  <div><strong>Skills:</strong> All 5</div>
+  <div><strong>Fix-now after Run 3:</strong> 37 total</div>
+  <div><strong>Items here:</strong> Architectural / design decisions only</div>
+</div>
+
+<div class="instructions">
+  <strong>How to use this page</strong>
+  Mark each item Accept / Modify / Defer. Use the Notes field to record any changes to the suggested resolution. Items marked Accept or Modify will move to the fix backlog. Items marked Defer go to v1.0.1.
+</div>
+
+<div class="priority-note">
+  <strong>Quick wins (clear resolution, straightforward implementation):</strong>
+  Items 5, 6, 10, 11, 12, 13 &nbsp;|&nbsp; <strong>Requires most judgment:</strong> Items 1, 7, 8
+</div>
+
+<div class="items" id="items"></div>
+
+<div class="summary-bar" id="summary">
+  <span><span class="dot dot-pending"></span> Pending: <strong id="cnt-pending">16</strong></span>
+  <span><span class="dot dot-accept"></span> Accept: <strong id="cnt-accept">0</strong></span>
+  <span><span class="dot dot-modify"></span> Modify: <strong id="cnt-modify">0</strong></span>
+  <span><span class="dot dot-defer"></span> Defer: <strong id="cnt-defer">0</strong></span>
+</div>
+
+<script>
+const items = [
+  {
+    num: 1,
+    title: "Separate inference pool — Claude API viability",
+    skill: "secure-external-ingestion",
+    flag: "judgment",
+    description: "Level C recommends \"separate inference pools\" but no such isolation primitive exists in the Claude API. Developers may act on guidance that isn't implementable.",
+    resolution: "Reframe as conceptual guidance with a caveat: \"No API-level isolation exists today — mitigate by using separate API keys with distinct system prompts and rate limits per trust tier.\""
+  },
+  {
+    num: 2,
+    title: "Token estimation heuristic — ship or require real tokenizer",
+    skill: "llm-endpoint-hardening",
+    flag: "judgment",
+    description: "len(text)/4 is presented as working Level A code despite systematic underestimation for CJK/emoji. Risk: developers copy-paste it into production.",
+    resolution: "Ship the heuristic with a prominent # WARNING: NOT PRODUCTION-SAFE block comment AND add a separate code block showing tiktoken usage. Give developers both paths explicitly."
+  },
+  {
+    num: 3,
+    title: "Input size check — elevate warning or remove",
+    skill: "llm-endpoint-hardening",
+    flag: null,
+    description: "The len(request.message) > MAX_INPUT_CHARS check has a parenthetical warning about CJK/emoji underestimation. A parenthetical is easy to miss.",
+    resolution: "Promote the warning to a # WARNING inline comment directly above the check, matching the style already used in Level B. No behavior change — just visibility."
+  },
+  {
+    num: 4,
+    title: "Output-validation trigger scope vs. HTML-only implementation",
+    skill: "output-validation",
+    flag: null,
+    description: "The SKILL.md trigger says the skill applies when output is used in \"SQL, shell commands, or code that gets executed\" — but templates only cover HTML text-node escaping. SQL and shell have completely different escaping requirements.",
+    resolution: "Narrow the trigger description to HTML/markup rendering contexts only. Add a note: \"For SQL, use parameterized queries; for shell, use subprocess with argument arrays — not string escaping.\" Do not add SQL/shell templates to this skill."
+  },
+  {
+    num: 5,
+    title: "sanitize_html_output name implies context-agnostic safety",
+    skill: "output-validation",
+    flag: "win",
+    description: "The function uses html.escape() which is only safe for HTML text nodes — not attribute values, script blocks, or URL contexts. The function name misleads developers into using it in unsafe contexts.",
+    resolution: "Rename to escape_html_text_node() in the template and update all call sites and SKILL.md references. Add docstring: \"Safe for text-node insertion only. Not safe for attribute, JS, CSS, or URL contexts.\""
+  },
+  {
+    num: 6,
+    title: "Fail-closed logic uses string-matching on warning messages",
+    skill: "output-validation",
+    flag: "win",
+    description: "The fail-closed block checks for substrings like \"Possible SSN\" in warning strings. If any scan function's message wording changes, the fail-closed behavior silently breaks with no indication.",
+    resolution: "Refactor scan functions to return structured dicts ({\"type\": \"pii_ssn\", \"severity\": \"critical\", \"match\": \"...\"}) and match on type field instead of text. Breaking change to template API — worth doing before v1.0.0."
+  },
+  {
+    num: 7,
+    title: "Dual-prompt architecture — no implementation path",
+    skill: "system-prompt-design",
+    flag: "judgment",
+    description: "Level C recommends \"dual-prompt architecture\" as a primary control but provides no API-call-level guidance. Claude's system prompt is not confidential from the model regardless of how it's passed.",
+    resolution: "Reframe with caveat: \"No API placement makes a system prompt inaccessible to the model. Dual-prompt refers to separating user-visible instructions from internal reasoning — not achieving cryptographic confidentiality.\" Provide a concrete example using the system parameter vs. assistant prefill."
+  },
+  {
+    num: 8,
+    title: "Output filter for Level C — no template or adversarial guidance",
+    skill: "system-prompt-design",
+    flag: "judgment",
+    description: "Level C recommends a +1 LLM call output filter but provides no filter prompt template and no discussion of the filter's own susceptibility to adversarial evasion.",
+    resolution: "Demote to v1.0.1 with a cross-reference: \"A filter prompt template with adversarial evasion caveats will be added in v1.0.1. For now, implement a keyword blocklist for known system prompt fragments as a starting point.\""
+  },
+  {
+    num: 9,
+    title: "Credential regex patterns — illustrative vs. maintained",
+    skill: "system-prompt-design",
+    flag: null,
+    description: "Patterns like sk-[A-Za-z0-9]{20,} miss current formats (sk-ant-api03-*, sk-proj-*) and formats change without notice. Shipping them as working code creates false confidence.",
+    resolution: "Add a prominent caveat: \"These patterns are illustrative only and will become stale. For production use, integrate truffleHog or detect-secrets which maintain up-to-date pattern sets.\" Do not attempt to maintain patterns in this repo."
+  },
+  {
+    num: 10,
+    title: "Cross-tag escape — only escapes current iteration's tag",
+    skill: "system-prompt-design",
+    flag: "win",
+    description: "build_system_prompt escapes the current tag name in each content block but not other registered tags. An attacker can close one UNTRUSTED block and open a different registered tag in the same content.",
+    resolution: "Escape ALL registered tag names (not just the current one) in every content block. Collect all tag names first, then apply a single combined regex per block."
+  },
+  {
+    num: 11,
+    title: "CLEAN output label creates false confidence",
+    skill: "system-prompt-design / output-validation",
+    flag: "win",
+    description: "Demo code prints \"Credential scan: CLEAN\" — a binary pass signal that directly contradicts the caveats in the docstrings. CI pipelines may parse this as a green gate.",
+    resolution: "Change all demo output to \"No patterns detected (not a guarantee of absence)\". Low effort, high credibility impact."
+  },
+  {
+    num: 12,
+    title: "Destructive tool denylist — expand or flip to allowlist",
+    skill: "agent-action-surface",
+    flag: "win",
+    description: "DESTRUCTIVE_TOOL_PREFIXES misses post, put, patch, execute, run, invoke, and many others. The denylist model is fundamentally incomplete — there is always another prefix. Caveat is buried in docstring.",
+    resolution: "Flip to allowlist: define SAFE_READ_PREFIXES = {\"get\", \"list\", \"read\", \"fetch\", \"search\", \"describe\"} and flag anything not on the list. Promote the caveat from docstring to a # WARNING block at the call site."
+  },
+  {
+    num: 13,
+    title: "Stage 1 write-permission enforcement language",
+    skill: "agent-action-surface",
+    flag: "win",
+    description: "SKILL.md says \"Stage 1 NEVER has write permissions\" (imperative/enforcement language) but validate_pipeline() only emits a warning and cannot enforce this. The gap misleads developers about the actual protection.",
+    resolution: "Change SKILL.md to: \"Stage 1 should not have write permissions. validate_pipeline() will warn if it detects them but cannot enforce this at runtime — enforcement is the operator's responsibility.\" Add a validate_or_raise() variant."
+  },
+  {
+    num: 14,
+    title: "MCP tool schema injection — in scope or out",
+    skill: "agent-action-surface",
+    flag: null,
+    description: "The skill addresses MCP tool results but ignores that tool names, descriptions, and parameter schemas are also attacker-controlled if the MCP server is compromised. These influence model behavior before any result is processed.",
+    resolution: "Add a Level B caveat in SKILL.md: \"MCP tool schemas (names, descriptions, parameters) are attacker-controlled if the MCP server is untrusted. Validate schema structure at registration time and treat tool descriptions as untrusted input.\" Reference Palo Alto Unit 42 MCP research."
+  },
+  {
+    num: 15,
+    title: "Audit logging 'full context' creates LLM02 surface",
+    skill: "agent-action-surface",
+    flag: null,
+    description: "Level C recommends audit logging \"with full context\" without guidance on PII scrubbing, access controls, or retention. Full-context logs can expose credentials, PII, and system prompt contents.",
+    resolution: "Change \"full context\" to \"relevant context\" and add: \"Do not log raw system prompts, credentials, or unredacted PII. Scrub sensitive fields before writing to logs. Apply access controls and retention limits appropriate for the sensitivity level.\""
+  },
+  {
+    num: 16,
+    title: "trusts_input_from=None default silently suppresses warnings",
+    skill: "agent-action-surface",
+    flag: "win",
+    description: "trusts_input_from: str | None = None defaults to treating a stage as having no declared trust source, which can suppress write-access warnings for stages that simply forgot to declare it.",
+    resolution: "Make trusts_input_from a required field with no default, so omitting it is a validation error at pipeline construction time, not a silent pass."
+  }
+];
+
+const flagLabel = { win: "Quick win", judgment: "Needs judgment", null: null };
+const flagBadge = { win: "badge-win", judgment: "badge-judgment" };
+const decisions = {};
+
+function render() {
+  const container = document.getElementById("items");
+  container.innerHTML = items.map(item => `
+    <div class="card ${item.flag === 'win' ? 'quick-win' : item.flag === 'judgment' ? 'judgment' : ''}" id="card-${item.num}">
+      <div class="card-header">
+        <span class="card-num">#${item.num}</span>
+        <span class="card-title">${item.title}</span>
+        ${item.flag ? `<span class="badge ${flagBadge[item.flag]}">${flagLabel[item.flag]}</span>` : ''}
+        <span class="skill-tag">${item.skill}</span>
+      </div>
+      <div class="card-body">
+        <div class="col">
+          <div class="col-label">Issue</div>
+          <p>${item.description}</p>
+        </div>
+        <div class="col resolution">
+          <div class="col-label">Suggested Resolution</div>
+          <p>${item.resolution}</p>
+        </div>
+      </div>
+      <div class="decision-row">
+        <span class="decision-label">Decision:</span>
+        <div class="decision-buttons">
+          <button class="btn accept ${decisions[item.num] === 'accept' ? 'active' : ''}" onclick="decide(${item.num}, 'accept')">Accept</button>
+          <button class="btn modify ${decisions[item.num] === 'modify' ? 'active' : ''}" onclick="decide(${item.num}, 'modify')">Modify</button>
+          <button class="btn defer ${decisions[item.num] === 'defer' ? 'active' : ''}" onclick="decide(${item.num}, 'defer')">Defer to v1.0.1</button>
+        </div>
+        <input class="notes-input" id="note-${item.num}" placeholder="Notes / modified resolution…" value="${(decisions[item.num + '_note'] || '')}" oninput="saveNote(${item.num}, this.value)">
+      </div>
+    </div>
+  `).join('');
+  updateSummary();
+}
+
+function decide(num, choice) {
+  if (decisions[num] === choice) {
+    delete decisions[num];
+  } else {
+    decisions[num] = choice;
+  }
+  render();
+}
+
+function saveNote(num, val) {
+  decisions[num + '_note'] = val;
+}
+
+function updateSummary() {
+  const counts = { accept: 0, modify: 0, defer: 0, pending: 0 };
+  items.forEach(item => {
+    const d = decisions[item.num];
+    if (d) counts[d]++;
+    else counts.pending++;
+  });
+  document.getElementById('cnt-pending').textContent = counts.pending;
+  document.getElementById('cnt-accept').textContent = counts.accept;
+  document.getElementById('cnt-modify').textContent = counts.modify;
+  document.getElementById('cnt-defer').textContent = counts.defer;
+}
+
+render();
+</script>
+</body>
+</html>

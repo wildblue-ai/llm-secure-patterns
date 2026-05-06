@@ -1,0 +1,246 @@
+{
+  "source": "Run 3 Adversarial Review — architectural-decisions.html",
+  "decided_by": "Cheryl Aday",
+  "decided_session_start": "2026-04-14",
+  "decided_session_end": "2026-04-16",
+  "summary": {
+    "total": 16,
+    "accept": 5,
+    "modify": 11,
+    "defer": 0
+  },
+  "design_principles_established": [
+    "Three-tier output: (a) skill templates = drop-in code, (b) report scaffolds = starter code with TODOs, (c) advisories = developer-decision-only items in Developer Recommendations Report.",
+    "Developer Recommendations Report = extension of existing /llm-secure-patterns:report command. Includes scaffolded code where possible.",
+    "Main posture report framed as CTO report: strategic posture, what was applied and where.",
+    "Report entries must be self-contained — spell out domain terms (e.g., 'Stage 1 (classification/reasoning stage)').",
+    "Warnings about what a skill does NOT cover live in SKILL.md. Developer Recommendations Report only echoes them when the skill actually fired. CTO report never lists adjacent gaps.",
+    "Plan-scan mode deferred to v1.1 (CHANGELOG): /llm-secure-patterns:plan-scan reads a project plan, batches all tier/architecture decisions upfront, writes .llm-security-decisions.yaml so skills can run mostly unattended."
+  ],
+  "decisions": [
+    {
+      "num": 1,
+      "title": "Separate inference pool — Claude API viability",
+      "skill": "secure-external-ingestion",
+      "decision": "modify",
+      "original_note": "need more info on what separate inference pools are.",
+      "resolution": "Drop the 'pool' jargon entirely. Reframe Level C as: 'Separate credentials per trust tier. Use a distinct API key, system prompt, and rate limit for each trust tier. The Claude API does not offer a named inference pool primitive — key-level separation is the practical equivalent on today's APIs.'",
+      "targets": {
+        "skill_md": "skills/secure-external-ingestion/SKILL.md (Level C)",
+        "cto_report": "posture entry: trust-tier credential isolation applied",
+        "dev_report": "scaffold: two Anthropic() clients with distinct keys labeled low_trust_client / high_trust_client, with .env example and usage guidance"
+      }
+    },
+    {
+      "num": 2,
+      "title": "Token estimation heuristic — ship or require real tokenizer",
+      "skill": "llm-endpoint-hardening",
+      "decision": "modify",
+      "original_note": "why do we not put a length code. or could we ask them to choose during development? And still add warning?",
+      "resolution": "Keep len/4 heuristic but use Anthropic SDK's client.messages.count_tokens() (NOT tiktoken — wrong tokenizer for Claude) as the accurate path. Side-by-side code blocks with prominent # WARNING: NOT PRODUCTION-SAFE above the heuristic. Interactive choice deferred to v1.1 plan-scan.",
+      "targets": {
+        "skill_md": "skills/llm-endpoint-hardening/SKILL.md (Level A)",
+        "cto_report": "posture entry noting heuristic used with accuracy caveat (underestimates CJK/emoji 2-4x)",
+        "dev_report": "action item: switch to client.messages.count_tokens() before serving non-English traffic or relying on token counts for billing/quota"
+      }
+    },
+    {
+      "num": 3,
+      "title": "Input size check — elevate warning or remove",
+      "skill": "llm-endpoint-hardening",
+      "decision": "accept",
+      "original_note": "yes",
+      "resolution": "Promote parenthetical CJK/emoji warning to # WARNING inline comment above the len(request.message) > MAX_INPUT_CHARS check. Match Level B style. No behavior change.",
+      "targets": {
+        "skill_md": "skills/llm-endpoint-hardening/SKILL.md (Level A)",
+        "cto_report": null,
+        "dev_report": null
+      }
+    },
+    {
+      "num": 4,
+      "title": "Output-validation trigger scope vs. HTML-only implementation",
+      "skill": "output-validation",
+      "decision": "modify",
+      "original_note": "can we give a warning that it does not do string escaping for SQL/shell commands? as well as your suggested resolution.",
+      "resolution": "Narrow SKILL.md trigger to HTML/markup rendering contexts only. Add explicit warning: 'This skill does NOT provide SQL or shell escaping. For SQL use parameterized queries (cursor.execute(sql, params) — never string interpolation). For shell use argument arrays (subprocess.run([cmd, arg]) — never shell=True with user input).'",
+      "targets": {
+        "skill_md": "skills/output-validation/SKILL.md (trigger description + new warning block)",
+        "cto_report": null,
+        "dev_report": "one-line reminder when Output Validation was applied: 'This skill covered HTML escaping only. SQL and shell contexts require parameterized queries and argument arrays respectively.'"
+      }
+    },
+    {
+      "num": 5,
+      "title": "sanitize_html_output name implies context-agnostic safety",
+      "skill": "output-validation",
+      "decision": "accept",
+      "flag": "quick-win",
+      "original_note": "yes, suggested sounds good.",
+      "resolution": "Rename sanitize_html_output() to escape_html_text_node() in template + all call sites + SKILL.md references. Docstring: 'Safe for text-node insertion only. Not safe for attribute, JS, CSS, or URL contexts.'",
+      "targets": {
+        "skill_md": "skills/output-validation/SKILL.md",
+        "template": "templates/python/validate_llm_output.py (and any call sites)",
+        "cto_report": null,
+        "dev_report": null
+      }
+    },
+    {
+      "num": 6,
+      "title": "Fail-closed logic uses string-matching on warning messages",
+      "skill": "output-validation",
+      "decision": "accept",
+      "flag": "quick-win",
+      "original_note": "yes. do suggested.",
+      "resolution": "Refactor scan functions to return structured dicts {type, severity, match}. Fail-closed block matches on 'type' field instead of message substring. Breaking template API change — acceptable pre-release.",
+      "targets": {
+        "skill_md": "skills/output-validation/SKILL.md",
+        "template": "templates/python/validate_llm_output.py",
+        "cto_report": null,
+        "dev_report": null
+      }
+    },
+    {
+      "num": 7,
+      "title": "Dual-prompt architecture — no implementation path",
+      "skill": "system-prompt-design",
+      "decision": "modify",
+      "original_note": "suggested sounds good. should we have an additional developer recommendations report we provide with recommendations to developer for items we cannot solve?",
+      "resolution": "Reframe Level C: 'No API placement makes a system prompt inaccessible to the model. Dual-prompt refers to separating user-visible instructions from internal reasoning — not cryptographic confidentiality.' Provide concrete example: system parameter vs. assistant prefill. Originating prompt for the Developer Recommendations Report idea (now locked in as Option B with code scaffolds).",
+      "targets": {
+        "skill_md": "skills/system-prompt-design/SKILL.md (Level C)",
+        "cto_report": null,
+        "dev_report": "scaffold: system-parameter vs. assistant-prefill split in working code, explaining what dual-prompt does/doesn't give you"
+      }
+    },
+    {
+      "num": 8,
+      "title": "Output filter for Level C — no template or adversarial guidance",
+      "skill": "system-prompt-design",
+      "decision": "modify",
+      "original_note": "suggested is good. make sure this goes into developer recommendations report also.",
+      "resolution": "Demote full template to v1.0.1. In v1.0.0 add cross-reference + keyword-blocklist starter: 'A filter prompt template with adversarial evasion caveats will be added in v1.0.1. For now, implement a keyword blocklist for known system prompt fragments as a starting point.'",
+      "targets": {
+        "skill_md": "skills/system-prompt-design/SKILL.md (Level C)",
+        "changelog": "v1.0.1 roadmap entry for filter template",
+        "cto_report": null,
+        "dev_report": "entry: 'Level C output filter template planned for v1.0.1. Interim mitigation: keyword blocklist matching known system prompt fragments. The filter itself is an LLM call and is susceptible to the same adversarial techniques it's designed to catch — plan for false negatives.'"
+      }
+    },
+    {
+      "num": 9,
+      "title": "Credential regex patterns — illustrative vs. maintained",
+      "skill": "system-prompt-design",
+      "decision": "modify",
+      "original_note": "Yes. any reason we don't already suggest implementation of trufflehog as part of this skill? or is that not done, or otherwise risky?",
+      "resolution": "Keep illustrative regex with prominent caveat. Add new section in SKILL.md: 'Recommended tooling — for real-time output scanning use detect-secrets (Python library); for repo/git-history scanning use truffleHog (CLI). These maintain up-to-date detector sets and are the production-grade path. The regex in this template is illustrative only.' Distinction: this skill's use case is runtime output scanning (detect-secrets fits); truffleHog matters for preventing accidentally committed secrets.",
+      "targets": {
+        "skill_md": "skills/system-prompt-design/SKILL.md (new 'Recommended tooling' subsection)",
+        "cto_report": "posture entry: illustrative credential regex in use; production detection delegated to maintained scanners",
+        "dev_report": "install + integration snippets: pip install detect-secrets (3-line runtime scan example); trufflehog filesystem --directory=. (pre-commit hook pointer)"
+      }
+    },
+    {
+      "num": 10,
+      "title": "Cross-tag escape — only escapes current iteration's tag",
+      "skill": "system-prompt-design",
+      "decision": "accept",
+      "flag": "quick-win",
+      "original_note": "agreed",
+      "resolution": "build_system_prompt() collects ALL registered tag names, then applies a single combined regex to every content block. Closes the 'close one UNTRUSTED block, open a different registered tag' bypass.",
+      "targets": {
+        "skill_md": "skills/system-prompt-design/SKILL.md",
+        "template": "templates/python/build_system_prompt.py",
+        "cto_report": null,
+        "dev_report": null
+      }
+    },
+    {
+      "num": 11,
+      "title": "CLEAN output label creates false confidence",
+      "skill": "system-prompt-design / output-validation",
+      "decision": "modify",
+      "flag": "quick-win",
+      "original_note": "agreed",
+      "resolution": "Change demo output from 'Credential scan: CLEAN' to 'No credential patterns detected'. Scopes what was scanned ('credential') and implies 'we looked, didn't find' rather than a binary pass. Drop the parenthetical — 'detected' carries the caveat.",
+      "targets": {
+        "skill_md": null,
+        "template": "all templates with demo print statements (credential scans, PII scans)",
+        "cto_report": null,
+        "dev_report": null
+      }
+    },
+    {
+      "num": 12,
+      "title": "Destructive tool denylist — expand or flip to allowlist",
+      "skill": "agent-action-surface",
+      "decision": "modify",
+      "flag": "quick-win",
+      "original_note": "agreed. should we add note to developer in recommendations report?",
+      "resolution": "Flip DESTRUCTIVE_TOOL_PREFIXES denylist to SAFE_READ_PREFIXES allowlist: {'get', 'list', 'read', 'fetch', 'search', 'describe'}. Anything not on the list flagged as potentially destructive. Promote caveat from docstring to # WARNING block at call site.",
+      "targets": {
+        "skill_md": "skills/agent-action-surface/SKILL.md",
+        "template": "templates/python/validate_agent_pipeline.py",
+        "cto_report": null,
+        "dev_report": "entry: 'Agent Action Surface uses a read-only allowlist (SAFE_READ_PREFIXES). Any tool not matching the allowlist is flagged as potentially destructive. Review and extend the allowlist for your specific MCP servers and tool sets — safe tool names vary by provider.'"
+      }
+    },
+    {
+      "num": 13,
+      "title": "Stage 1 write-permission enforcement language",
+      "skill": "agent-action-surface",
+      "decision": "modify",
+      "flag": "quick-win",
+      "original_note": "agreed. maybe developer recommendations report also",
+      "resolution": "SKILL.md language change: 'Stage 1 should not have write permissions. validate_pipeline() will warn if it detects them but cannot enforce this at runtime.' Add validate_or_raise() variant for hard-fail callers.",
+      "targets": {
+        "skill_md": "skills/agent-action-surface/SKILL.md (remove imperative NEVER language)",
+        "template": "templates/python/validate_agent_pipeline.py (add validate_or_raise variant)",
+        "cto_report": null,
+        "dev_report": "entry: 'validate_pipeline() warns on Stage 1 (classification/reasoning stage) write permissions but cannot prevent them at runtime. Use validate_or_raise() to fail hard on detection, or enforce at the deployment layer (IAM roles, API key scoping, least-privilege service accounts) to block Stage 1 from ever acquiring write capability. Preventing write-capable Stage 1 pipelines is the operator's responsibility.'"
+      }
+    },
+    {
+      "num": 14,
+      "title": "MCP tool schema injection — in scope or out",
+      "skill": "agent-action-surface",
+      "decision": "modify",
+      "original_note": "Agreed. but is this actionable by developer, or just protecting our credibility? Anything else we can help them with?",
+      "resolution": "Replace one-line caveat with 'MCP server trust' subsection in Level B covering 6 controls: (1) allowlist MCP servers, (2) pin schema hashes + diff on change, (3) sanitize tool descriptions (apply delimiter-escape), (4) bound-check schema structure at registration, (5) registration audit log, (6) least-privilege at MCP boundary. Lead framing: 'MCP tool schemas influence model behavior before any code runs. Hash-pinning surfaces schema changes that would otherwise slip past normal code review because they don't break your code.' Verify Palo Alto Unit 42 citation before shipping; drop reference if no specific paper is locatable. Include false-confidence warning: controls mitigate common MCP trust failures, do not eliminate risk from deeply compromised server with valid credentials.",
+      "targets": {
+        "skill_md": "skills/agent-action-surface/SKILL.md (new MCP server trust subsection in Level B)",
+        "cto_report": "posture entry: 'MCP schema-trust controls applied: allowlist + hash-pinning + description escaping. Rug-pull attacks mitigated at registration time.' Includes false-confidence warning.",
+        "dev_report": "scaffolds: allowlist config + hash-pinning helper (with pin-update workflow — on mismatch, show diff and require confirmation like SSH known_hosts). Include MCP spec version note."
+      }
+    },
+    {
+      "num": 15,
+      "title": "Audit logging 'full context' creates LLM02 surface",
+      "skill": "agent-action-surface",
+      "decision": "modify",
+      "original_note": "hmm. are changes you suggest going to impact skill, or just suggestions to dev?",
+      "resolution": "Three layers: (1) SKILL.md swap 'full context' → 'relevant context' + add framing: 'Logging full context creates an LLM02 sensitive-information-disclosure surface. Logs become a new attack target; anyone who compromises log storage inherits your system prompts, user PII, and credentials from tool results.' (2) Template code: add redact_for_audit_log() helper — drops system prompt contents (log hash only), masks known credential patterns (integrates with detect-secrets from #9), drops/masks PII fields flagged by caller, logs tool name + parameter schema not parameter values (opt-in per-field). (3) Dev report: deployment checklist (access controls on log storage, retention limits, storage encryption at rest, log destination trust review, separation of audit from operational logs).",
+      "targets": {
+        "skill_md": "skills/agent-action-surface/SKILL.md (Level C)",
+        "template": "templates/python/validate_agent_pipeline.py (new redact_for_audit_log helper)",
+        "cto_report": "posture entry: audit logging applied with redaction helper; deployment-layer controls flagged as operator responsibility",
+        "dev_report": "deployment checklist with rationale per item, no code"
+      }
+    },
+    {
+      "num": 16,
+      "title": "trusts_input_from=None default silently suppresses warnings",
+      "skill": "agent-action-surface",
+      "decision": "accept",
+      "flag": "quick-win",
+      "original_note": "agreed",
+      "resolution": "Remove '= None' default from trusts_input_from parameter. Omission now raises a validation error at pipeline construction time. Breaking change — acceptable pre-release.",
+      "targets": {
+        "skill_md": "skills/agent-action-surface/SKILL.md (if default is documented there)",
+        "template": "templates/python/validate_agent_pipeline.py",
+        "cto_report": null,
+        "dev_report": null
+      }
+    }
+  ]
+}

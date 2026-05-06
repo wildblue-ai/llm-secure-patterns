@@ -1,0 +1,1 @@
+Build a Slack bot that monitors our #support channel, fetches any URLs customers paste, summarizes the linked pages using Claude, writes the summary to our CRM database, and posts a response in the thread. The bot should also be able to escalate tickets by calling our internal ticketing API.

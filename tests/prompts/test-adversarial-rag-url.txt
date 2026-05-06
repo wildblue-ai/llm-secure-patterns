@@ -1,0 +1,1 @@
+Build a RAG pipeline where users paste a URL and our system fetches the page content, chunks it, stores embeddings in Pinecone, and uses Claude to answer questions about the page. Users should be able to paste any URL they want.

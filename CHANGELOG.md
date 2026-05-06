@@ -1,0 +1,89 @@
+# Changelog
+
+## [1.0.0] — Unreleased
+
+Gates pending before v1.0.0 release:
+- Run 5 adversarial review (or smoke re-verify) confirms Run 4 fix-now items hold and no critical regressions
+- Fresh-install flow tested from public GitHub URL
+- Plugin marketplace submission accepted
+- Repository made public (currently private at `wildblue-ai/llm-secure-patterns`)
+
+## [0.9.0] — 2026-05-03
+
+**Plugin renamed** from `llm-secure-by-design` → `llm-secure-patterns` on 2026-05-03; the original slug is reserved for a future agentic successor plugin. Old slash command `/llm-secure-by-design:report` is now `/llm-secure-patterns:report`. Annotation `Applied by:` field updated accordingly.
+
+Four rounds of cross-model adversarial review completed (Runs 1, 2, 3, 4 — see `docs/adversarial-review/AUDIT_LOG.md`). Run 1 fixes landed in commit `bdc66ba`; Run 2 fixes landed in commit `2e6600b` plus the follow-up caveat pass in commit `e0fb9d5`. Run 3 surfaced 37 fix-now items: 16 architectural decisions (tracked in `docs/adversarial-review/decisions.json`, 5 Accept / 11 Modify / 0 Defer — all implemented in commits `d6ab805..bd7bfb6` on 2026-04-16) and 20 direct code/language fixes (tracked in `docs/adversarial-review/findings-plan.md` Completed checklist — all implemented in commits `a4ecc4f..e0fb9d5` on 2026-04-20). Run 4 surfaced 47 fix-now items, all addressed in commits `fb15898..525354c` (per-skill + cross-skill language pass); an additional 47 items triaged for v1.0.1 backlog; 46 items documented as won't-fix in SCOPE.md. Developer Recommendations Report built on 2026-04-23 (extends `/llm-secure-patterns:report`, scaffolds + advisories for decisions #1, #2, #4, #7, #8, #9, #12, #13, #14, #15).
+
+### Added
+- 5 model-invoked skills: Secure External Ingestion, LLM Endpoint Hardening, Output Validation, System Prompt Design, Agent Action Surface Control
+- `/llm-secure-patterns:report` command — generates OWASP LLM Top 10 security posture report from `# SECURITY:` annotations
+- `# SECURITY:` structured comment convention with OWASP version, confidence level, risk tradeoff tracking
+- Tiered mitigation options (Low / Moderate / High) with risk vs. cost tradeoffs
+- A/B/C/D choice UX with option D for guided decision making (diagnostic questions)
+- Cost and latency transparency for Level C (only shown where non-zero)
+- Intro flow: "Apply security now" vs "Build first, secure later" with TODO reminder
+- "Additional Security Gaps Identified" prompt after each skill with A/B/C choice (address / backlog / skip)
+- 5 standalone Python templates
+- SessionStart hook for threat bulletin notifications
+- Reference docs: OWASP mapping, confidence tiers, false-solution patterns, threat intel sources, annotation format
+- SCOPE.md with explicit coverage boundaries and liability language
+- Automated test harness (`tests/run-manual-tests.sh`) with pre-embedded choices for non-interactive testing
+- Cross-model adversarial review harness (`tests/adversarial-review/run.sh`) — 3-reviewer setup (Claude Sonnet 4.6, GPT-4o, Gemini 2.5 Pro) with Claude Opus 4.6 triage
+- Liability framing — inline disclaimer on all 5 SKILL.md files; `SCOPE.md` `Intended Audience` and `Use of This Plugin` sections clarifying no consulting/advisory relationship
+- Design-time skill triggering — all 5 skill descriptions explicitly fire during architecture/planning discussions, not just implementation, so security guidance lands before design choices are locked in (moved forward from v1.0.1 roadmap)
+- Safety-net framing on report command — every skill's closing instruction now tells developers to run `/llm-secure-patterns:report` specifically to catch LLM surfaces where security skills did not fire during the session. README documents the pattern as a standing safety net rather than an optional extra
+- **Developer Recommendations Report** (2026-04-23) — `/llm-secure-patterns:report` now generates two files: `SECURITY_POSTURE.md` (CTO-facing strategic posture) and `DEVELOPER_RECOMMENDATIONS.md` (developer-facing follow-up scaffolds and advisories). The dev report is assembled from per-decision files in `skills/report/recommendations/` (10 files covering Run 3 decisions #1, #2, #4, #7, #8, #9, #12, #13, #14, #15). Files are loaded on demand — only recommendations whose trigger condition is satisfied by annotations actually found in the codebase appear in the output. Keeps the CTO report prompt lean and avoids overloading context when few skills have fired. Disposition prompt offers three options: commit both / gitignore both / mixed. Direct-annotation semantics stated inline in Step 2: a category is MITIGATED only when an annotation directly references its OWASP ID — the Addressed-by mapping is a gap-suggestion table, not a transitive-credit table. Validated via `tests/dry-run-brief.md` fixture harness (9 expected recs, 1 negative-trigger check, CTO-report regression check).
+
+### Changed (from Run 3 decision work, 2026-04-16)
+- **Scan functions return structured findings** (decision #6): `scan_for_pii`, `scan_for_urls`, `scan_for_prompt_leakage` now return `list[Finding]` dicts (`{type, severity, match, message}`) instead of `list[str]`. Callers match on stable `type` IDs and fail closed on `severity == "critical"`. **Breaking change** against pre-v0.9.0 copies of the template.
+- **Output-validation function renamed** (decision #5): `sanitize_html_output` → `escape_html_text_node`; docstring now names text-node-only safety and the contexts it is NOT safe for (attribute, JS, CSS, URL).
+- **Cross-tag delimiter escape in `build_system_prompt`** (decision #10): escapes all registered tag names in every content block, closing the cross-tag breakout vector.
+- **Required trust-source declaration on `PipelineStage`** (decision #16): `trusts_input_from` is a required keyword-only field; omission raises `TypeError` at construction instead of silently treating the stage as external-untrusted.
+- **Safe-read allowlist replaces destructive denylist** (decision #12): `SAFE_READ_PREFIXES = {get, list, read, fetch, search, describe}` flipped from the prior `DESTRUCTIVE_TOOL_PREFIXES` denylist; tools outside the allowlist flag as potentially destructive.
+- **`validate_or_raise()` + `PipelineValidationError`** (decision #13): SKILL.md language softened from "Stage 1 NEVER has write permissions" to "should not"; the new fail-closed variant gives developers who want hard enforcement (CI gates, startup checks) a runtime block.
+- **MCP server trust controls** (decision #14): six-control Level B subsection — allowlist, schema hash-pinning, description sanitization, schema structure bounds, registration audit log, least-privilege at the boundary. Evidence includes verified Palo Alto Unit 42 and Invariant Labs (April 2025 Tool Poisoning Attacks) citations.
+- **Audit-log redaction helper** (decision #15): new `redact_for_audit_log()` in `isolated_pipeline.py` — system-prompt-to-hash, credential pattern scrubbing, tool-parameter redaction, caller-opt-in drop/hash fields. SKILL.md reframes audit logs as an LLM02 attack surface.
+- **Plus** architectural reframings: inference-pool jargon dropped for key-level separation (#1), token-count accurate path via `client.messages.count_tokens()` named as the production switch (#2), output-validation scope narrowed to HTML/markup with explicit "wrong tool for the job" guidance on SQL/shell (#4), dual-prompt reframed as leakage-surface not cryptographic confidentiality (#7), output-filter demoted to v1.0.1 with an interim keyword-blocklist path for v0.9.0 (#8), `detect-secrets` + `truffleHog` named as production credential scanners (#9), `CLEAN` binary pass label replaced with qualified detection language (#11).
+
+### Changed (from Run 3 direct fixes, 2026-04-20)
+- **secure-external-ingestion (6 items):** Level A `strip_html` regex carries a prominent WARNING pointing at Level B's proper parser; "catches obvious hidden content" language softened; `BASE64_PATTERN` extended to cover URL-safe Base64 (RFC 4648 §5); `HIDDEN_STYLE_PATTERNS` expanded for CSS Color Level 4 `rgb()`/`hsl()` syntax, more named whites, and `opacity:0` with a caveat listing residual bypasses; Level C "most robust" softened to "higher-effort layered approach"; new "Note on tool/function-call output" section names tool results / MCP responses / function-call returns as untrusted content requiring the same sanitize+delimit+budget pipeline.
+- **llm-endpoint-hardening (4 items):** kill switch wired into the Level B Python snippet (`is_kill_switch_triggered()` gate + `record_spend()` feed); "blocks" language violation fixed; TypeScript type guard added so a missing/non-string `message` returns 400 instead of an unhandled 500 stack-leak; middleware ordering invariant (auth before rate-limit) documented inline so reordering shows up in code review.
+- **output-validation (6 items):** Level A depth-and-strictness caveat + production path (`jsonschema` + `additionalProperties: False`, or Zod `.strict()`) to close prototype-pollution / extra-field / nested-validation gaps; React JSX URL-attribute XSS sub-bullet with scheme-allowlist defense; Markdown injection bullet with DOMPurify / parser-allowlist defense; CSV / spreadsheet formula injection bullet with single-quote-prefix defense; primary Level B snippet rewritten as fail-closed (matches the template's actual behavior; "NOTE: simplified" preamble removed).
+- **system-prompt-design (1 item):** credential-scan output masking — `_mask_match()` helper replaces the 20-char preview with `first-4-chars + "***"` so the scanner's own warnings no longer re-leak the matched credential.
+- **agent-action-surface (3 items):** delimiter-escape regex expanded from `[\s>]` to `[\s/>]` in `wrap_cross_model_output` and `wrap_tool_result`, closing self-closing-tag / newline / tab variants; "significantly reduces escalation risk" softened to "reduces" with IPC-dependence noted; new Level B "Argument-level validation on every tool call (ambient authority defense)" bullet covers SQL injection / path traversal / SSRF / exfil via tool argument values.
+- **Run 2 partial-session caveat completion (2 files):** system-prompt-design `build_system_prompt` snippet now flags simplified behavior and points at the production template's cross-tag escape; canary tokens bullet names what they detect (verbatim echo) and don't (paraphrased extraction); agent-action-surface's caveat work was absorbed by the decision commits (#13, #14, #15) plus today's ambient-authority bullet.
+
+### Added (Run 4 fix-now items, 2026-04-25..2026-05-02)
+- 47 Run 4 fix-now items addressed across all 5 skills + cross-skill language passes. Per-skill commits: secure-external-ingestion (`8609338`, 4 items), llm-endpoint-hardening (`c556fd5`, 5 items), output-validation (`085c17c`, 8 items), system-prompt-design (`5ed436a`, 4 items), agent-action-surface (`70b5c41`, 5 items); cross-skill language-violation pass (`fb15898`, 7 items); residual "catches" language follow-up (`525354c`). See `docs/adversarial-review/AUDIT_LOG.md` for triage tables and `tests/adversarial-review/results/2026-04-24/` for per-skill findings.
+
+## Roadmap
+
+### v1.0.1 (planned)
+
+The bulk of the v1.0.1 backlog comes from Run 4 adversarial review (2026-04-24) — see [docs/adversarial-review/AUDIT_LOG.md](docs/adversarial-review/AUDIT_LOG.md) for the per-skill triage tables and the cross-skill patterns identified. Run 4 surfaced 47 items triaged as v1.0.1 (alongside 47 fix-now items that shipped in v0.9.0 after a focused fix cycle, and 46 won't-fix items documented in [SCOPE.md](SCOPE.md)).
+
+**v1.0.1 themes from Run 4:**
+- **Multi-turn / context priming caveats** — strengthen cross-references and per-skill notes; the limitation is already in SCOPE.md but skills don't all flag it consistently
+- **OWASP scope narrowing** — tighten the OWASP-category claims in System Prompt Design (LLM01), Output Validation (LLM05, LLM02), and Agent Action Surface (LLM06) to match what the implementations actually deliver, and add explicit caveats for what they don't
+- **Unicode coverage enumeration** — add BiDi overrides (U+202A–U+202E, U+2066–U+2069), U+E0000 tag characters, and zero-width joiners to the existing NFKC partial-coverage caveat in SCOPE.md, and reference from skills
+- **Production-readiness caveats** — strengthen "demo only" framing on in-memory rate limiters, single-process spend monitors, hardcoded model/cost defaults
+- **Per-skill v1.0.1 items** (full list in `tests/adversarial-review/results/2026-04-24/<skill>/findings.md` — gitignored, local copy only):
+  - secure-external-ingestion (9 items): HTTP response header injection note, URL-reflected injection, `_try_base64_decode` UTF-8 assumption, Base64 line-wrap evasion caveat, ROT13 vocabulary list strengthening, structured-data schema enforcement, RAG chunk-boundary injection, LLM02 ingestion guidance, PDF surface enumeration
+  - llm-endpoint-hardening (8 items): multi-turn priming subsection, response-validation pointer, content-type confusion, conditional tool-use guidance, header-as-prompt-injection note, hardcoded model string extraction, classifier timing side-channel, compute-cost variability note
+  - output-validation (12 items): ReDoS analysis on phone/URL regexes, PII scan refactor, international phone formats, generic-key false-positive risk, GitHub/Stripe key patterns, Markdown attribute injection, formula injection (DDE/pipe), semantic injection in valid output, LLM-as-judge recursive injection, CRLF in headers, second-order injection, prompt-leakage paraphrase caveat
+  - system-prompt-design (9 items): multi-turn context priming, downstream agent injection (LLM02), least-privilege prompt phrasing, complex data formats (SVG/CSV/PDF), nested type checking, empty-string check completeness, US-centric PII regex, credential-regex production warning, canary-token oracle disclosure
+  - agent-action-surface (9 items): tool-error wrapping, tool-schema parameter-name injection, audit-log parameter-name exfiltration, `log_tool_parameter_values` opt-in refactor, trust-chain typo validation, advisory-only framing for `validate_pipeline`, MCP confused deputy, dynamic schema pinning, system prompt exfiltration via tool args
+
+**Other v1.0.1 work (carry-overs from prior runs):**
+- Document and address Superpowers subagent-driven development interaction where security skills trigger during implementation but get rejected by the spec reviewer as "off-plan"
+- **Model-based output filter for System Prompt Design Level C** — filter-prompt template covering paraphrased, translated, and encoded extraction attempts, with adversarial-evasion caveats. v0.9.0 ships an interim keyword-blocklist pattern via Output Validation's `scan_for_prompt_leakage`; v1.0.1 adds the model-based filter for threat models where verbatim-fragment detection is insufficient.
+
+### v1.1.0 (planned)
+- TypeScript templates (contributions welcome — see CONTRIBUTING.md)
+- **Plan-scan mode** — `/llm-secure-patterns:plan-scan [path/to/plan.md]` reads a project plan or spec, detects security-relevant surfaces (endpoints, external fetches, tool_use, system prompts, agent pipelines), asks all tier/architecture decisions upfront in one batch, and writes `.llm-security-decisions.yaml`. Skills consult the decisions file and apply answers silently — enables mostly-unattended development (including in `--dangerously-skip-permissions` mode). `--diff` flag re-scans after plan updates and asks only about new surfaces.
+
+### Future
+- AI threat monitor for automated advisory triage
+- Integrate OWASP AIVSS (AI Vulnerability Scoring System) for numeric risk scoring alongside A/B/C tier selection, once AIVSS is finalized (currently draft — see https://owaspai.org)
+- Companion plugin mapping to [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — covers ASI09 (Human-Agent Trust Exploitation), ASI10 (Rogue Agents), and deeper coverage of agent-specific risks not addressed by this plugin
+- **Coverage overview page** — public web page (likely under `wildblue.ai/llm-secure-patterns/` or GitHub Pages) showing each OWASP Top 10 for LLM Applications 2025 category with the specific mitigations this plugin provides. Visual style inspired by trust-center pages like https://trust.autessa.com/ — card-per-category grid, status indicators (covered / partial / not addressable by code-time guidance), drill-down to the relevant skill and template per item. Supersedes the static OWASP coverage table currently in README.md.

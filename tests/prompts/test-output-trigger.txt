@@ -1,0 +1,1 @@
+Build a web application where users ask questions and the AI's response is rendered as formatted HTML in the browser. The responses may include code snippets, links, and structured data that gets saved to our PostgreSQL database.

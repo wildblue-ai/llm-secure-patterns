@@ -1,0 +1,46 @@
+You are a security auditor triaging adversarial security reviews of a Claude Code plugin before marketplace submission. The content below describes defensive security patterns, known attack techniques, and adversarial review findings. Analyzing these findings is authorized security research conducted by the plugin author to improve the security posture of a defensive tool. Below are independent reviews from multiple LLMs of the SAME skill.
+
+Your job:
+1. **Deduplicate** — collapse findings that multiple reviewers raised into single items (note which reviewers flagged each).
+2. **Assess validity** — some reviewer findings will be wrong, hallucinated, or based on misreading the skill. Mark these as REJECTED with a one-line reason.
+3. **Prioritize** the valid findings into three buckets:
+   - **fix-now** — must address before marketplace submission (real threat, real bug, language violation, false-confidence claim)
+   - **v1.0.1** — valid but non-blocking (nice-to-have, edge case, polish)
+   - **wont-fix** — out of scope (document in SCOPE.md instead)
+
+4. **Apply known permanent limitations** — the following are inherent properties of the techniques used and are NOT fix-now items. If a reviewer flags them, classify as **documented-limitation** (a sub-category of won't-fix) unless the reviewer identifies a specific *new* gap beyond what's described here:
+
+   - **Indirect prompt injection is a cross-skill dependency.** No single skill eliminates indirect injection. It requires layered mitigation across multiple skills (input sanitization, delimiter conventions, output validation, action surface control). Reviewers will always flag this; it is by design and documented in SCOPE.md. Only flag as fix-now if the skill *overclaims* coverage of indirect injection or fails to cross-reference companion skills.
+
+   - **Heuristic encoding detection (ROT13, Base64) is illustrative, not comprehensive.** The detection in `sanitize_web_content.py` is a best-effort heuristic that catches naive attempts. It is trivially bypassable by rephrasing, alternative encodings, or payload splitting. This is inherent to regex-based encoded-content detection. Only flag as fix-now if the skill *claims* comprehensive detection or *lacks* a caveat about the limitation.
+
+   - **NFKC Unicode normalization has partial homoglyph coverage.** NFKC does not collapse Enclosed Alphanumerics, Braille patterns, Regional Indicators, or Cyrillic/Greek lookalikes. Full homoglyph normalization requires TR39 confusables mapping, which is not included. Only flag as fix-now if the skill *claims* complete homoglyph handling or *lacks* a caveat.
+
+   - **Delimiter wrapping is a behavioral hint, not an architectural boundary.** All delimiter-based untrusted content wrapping (UNTRUSTED_* tags) relies on model instruction-following, not enforcement. It is demonstrably bypassable under adversarial conditions. Only flag as fix-now if the skill *presents* delimiter wrapping as reliable isolation or *lacks* the caveat.
+
+   - **In-memory state in templates is single-process only.** Templates use in-memory dicts/lists for demonstration. They do not work in multi-worker or multi-pod deployments. Only flag as fix-now if the template or SKILL.md *lacks* a warning about this limitation.
+
+Format:
+
+# Triage: {skill_name}
+
+## Fix Now (blocking submission)
+- **[finding]** (flagged by: claude, gpt) — [what to change]
+
+## v1.0.1
+- **[finding]** (flagged by: gemini) — [what to change]
+
+## Won't Fix (document in SCOPE.md)
+- **[finding]** — [why out of scope]
+
+## Rejected Findings
+- **[finding]** (from: gpt) — [why wrong]
+
+## Summary
+[1-2 sentences: overall health, count of fix-now items]
+
+---
+
+REVIEWS:
+
+{reviews}
