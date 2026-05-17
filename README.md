@@ -1,30 +1,10 @@
 # llm-secure-patterns
 
-A Claude Code plugin that teaches Claude to write secure LLM-powered applications from the start — not scan for bugs after the fact.
+OWASP Top 10 for LLM Applications 2025 — applied at code-time, not after the fact.
 
 **v0.9.0 pre-release** — Four rounds of cross-model adversarial review (Claude Sonnet 4.6, GPT-4o, Gemini 2.5 Pro, with Claude Opus 4.6 triage). Covers 7 of 10 OWASP LLM Top 10 2025 categories at code-time; the remaining 3 require organizational controls.
 
-> **This plugin is provided as-is. It offers security guidance and best-practice patterns, not protection or guarantees. See [SCOPE.md](SCOPE.md) for full details.**
-
-## Why This Exists
-
-Every existing security plugin in the Claude Code ecosystem either addresses traditional web app security or guards Claude Code's own session. None address the fastest-growing attack surface: **the applications developers are building on top of LLM APIs.**
-
-This plugin fills that gap by making [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025) compliance a default behavior of Claude Code, not an afterthought.
-
-## What It Does
-
-**5 model-invoked skills** that trigger automatically when Claude detects relevant code patterns:
-
-| Skill | Triggers When | OWASP Coverage |
-|-------|---------------|----------------|
-| Secure External Ingestion | Fetching URLs, scraping, RAG pipelines, external APIs | LLM01, LLM10 |
-| LLM Endpoint Hardening | Building web routes that forward to LLM APIs | LLM01, LLM10 |
-| Output Validation | Rendering, storing, or forwarding LLM responses | LLM05, LLM02, LLM09 |
-| System Prompt Design | Writing or editing system prompts | LLM07, LLM01 |
-| Agent Action Surface Control | Wiring up tool_use, MCP, multi-agent chains | LLM06, LLM01 |
-
-Each skill presents **tiered mitigation options** (Low / Moderate / High) with risk vs. cost tradeoffs, so you understand what you're choosing and why.
+**Security guidance, not security guarantees.** See [SCOPE.md](SCOPE.md) for full details.
 
 ## OWASP LLM Top 10 Coverage
 
@@ -67,15 +47,54 @@ Prompt injection is the #1 OWASP LLM risk because it can enter at every point in
 
 A disposition prompt at the end lets you commit both, gitignore both, or mix — useful for public repos where the posture report is auditable but the developer to-do list is not public.
 
+## Why This Exists
+
+Every existing security plugin in the Claude Code ecosystem either addresses traditional web app security or guards Claude Code's own session. None address the fastest-growing attack surface: **the applications developers are building on top of LLM APIs.**
+
+This plugin fills that gap by making [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025) compliance a default behavior of Claude Code, not an afterthought.
+
+## What It Does
+
+**5 model-invoked skills** that trigger automatically when Claude detects relevant code patterns:
+
+| Skill | Triggers When | OWASP Coverage |
+|-------|---------------|----------------|
+| Secure External Ingestion | Fetching URLs, scraping, RAG pipelines, external APIs | LLM01, LLM10 |
+| LLM Endpoint Hardening | Building web routes that forward to LLM APIs | LLM01, LLM10 |
+| Output Validation | Rendering, storing, or forwarding LLM responses | LLM05, LLM02, LLM09 |
+| System Prompt Design | Writing or editing system prompts | LLM07, LLM01 |
+| Agent Action Surface Control | Wiring up tool_use, MCP, multi-agent chains | LLM06, LLM01 |
+
+Each skill presents **tiered mitigation options** (Low / Moderate / High) with risk vs. cost tradeoffs, so you understand what you're choosing and why.
+
 ## How It Works
 
-1. You build an LLM-powered application with Claude Code
-2. Skills trigger automatically based on what you're coding
-3. Claude presents security options with tradeoffs and recommendations
-4. You choose a level — Claude implements the pattern with `# SECURITY:` annotations
-5. Run `/llm-secure-patterns:report` to generate your posture and developer-recommendations reports
+### 1. You start building something LLM-shaped
 
-Every recommendation includes:
+You write the first line of a FastAPI route that calls Claude, a function that scrapes web content for a RAG pipeline, or a system prompt for an agent. Claude Code, with this plugin loaded, notices.
+
+### 2. The relevant skill fires automatically
+
+Based on the surface you're working on (endpoint, ingestion, output rendering, system prompt, agent action), the relevant skill triggers **before** Claude writes the code. You see an intro: "llm-secure-patterns has detected code that would benefit from…" with two options:
+
+- **A) Apply security now** — walk through tier options before any code is written
+- **B) Build first, secure later** — Claude builds the code and leaves a `TODO: SECURITY` marker for you to come back to
+
+### 3. You pick a security level
+
+Each skill offers tiered mitigations: **Low / Moderate / High**. The skill explains the tradeoffs for each — what it covers, what it doesn't catch, and latency/cost where they apply. If you're unsure, option D walks you through diagnostic questions and recommends a tier based on your answers.
+
+### 4. Claude writes the code with annotations
+
+The code ships with structured `# SECURITY:` comments showing OWASP ID, level chosen, pattern applied, confidence rating, and known bypasses. The annotations are the audit trail.
+
+### 5. `/llm-secure-patterns:report` shows your coverage
+
+Run the command at the end of any session. You get two files: `SECURITY_POSTURE.md` (CTO-facing, mapped to all 10 OWASP LLM categories with file paths and gaps) and `DEVELOPER_RECOMMENDATIONS.md` (follow-up scaffolds for the developer, scoped to skills that actually fired).
+
+---
+
+Every recommendation in any skill includes:
 - **Confidence rating** (HIGH / MODERATE / LOW) with evidence
 - **Known bypasses** — what the pattern doesn't catch
 - **Layering requirements** — what else you need for defense-in-depth
