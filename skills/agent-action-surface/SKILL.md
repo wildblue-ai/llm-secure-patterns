@@ -254,7 +254,6 @@ When this skill triggers on existing code that already has agent/tool pipelines:
 2. Annotate existing mitigations with `# SECURITY:` tags at the appropriate level
 3. Flag gaps — for each gap, present the A/B/C/D tier choices and wait for the developer to choose before applying. Do not pick a level automatically.
 4. If no mitigations exist, present the full A/B/C/D tier choices as if building new code — wait for the developer to choose before applying.
-4. If no mitigations exist, present the full tiered options as if building new code
 
 After completing the review and applying any changes, always end with: "Run `/llm-secure-patterns:report` to see your full OWASP LLM Top 10 coverage and remaining gaps — and to catch any LLM surfaces where security skills did not fire during this session."
 
