@@ -37,3 +37,4 @@ tests/adversarial-review/decisions.json
 # Submission drafts and superpowers scratch
 docs/superpowers/
 docs/SUBMISSION_NOTES.md
+_review/
