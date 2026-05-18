@@ -2,7 +2,7 @@
 name: output-validation
 description: Use when designing or implementing code where LLM responses are rendered as HTML or markup in a frontend, written to a database, passed to another service, or used to generate emails or documents — fire this skill during architecture/planning discussions, not just implementation. Not for SQL or shell command construction — those require parameterized queries and argument arrays, not string escaping (see the Scope section in SKILL.md)
 metadata:
-  author: Cheryl Aday / WildBlue.AI
+  author: WildBlue.AI
   version: 0.9.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---

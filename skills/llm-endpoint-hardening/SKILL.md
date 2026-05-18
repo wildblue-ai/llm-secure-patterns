@@ -2,7 +2,7 @@
 name: llm-endpoint-hardening
 description: Use when designing or building a web route (FastAPI, Flask, Express, or similar) that accepts user input and forwards it to any LLM API (Claude, OpenAI, Gemini, or similar) — fire this skill during architecture/planning discussions, not just implementation
 metadata:
-  author: Cheryl Aday / WildBlue.AI
+  author: WildBlue.AI
   version: 0.9.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---

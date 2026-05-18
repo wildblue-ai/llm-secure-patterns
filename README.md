@@ -4,7 +4,7 @@ OWASP Top 10 for LLM Applications 2025 — applied at code-time, not after the f
 
 **v0.9.0 pre-release** — Four rounds of cross-model adversarial review (Claude Sonnet 4.6, GPT-4o, Gemini 2.5 Pro, with Claude Opus 4.6 triage). Covers 7 of 10 OWASP LLM Top 10 2025 categories at code-time; the remaining 3 require organizational controls.
 
-**Security guidance, not security guarantees.** See [SCOPE.md](SCOPE.md) for full details.
+**Important!** Security guidance, not security guarantees. See [SCOPE.md](SCOPE.md) for full details.
 
 ## OWASP LLM Top 10 Coverage
 
@@ -145,16 +145,22 @@ See [SCOPE.md](SCOPE.md) for detailed coverage boundaries.
 
 ## Related plugins
 
-This plugin is **complementary, not competing** with general-application-security tools. Install whichever combination matches your stack:
+This plugin is **complementary, not competing** with general-application-security tools. Install whichever combination matches your stack.
 
-| Need | Plugin |
-|---|---|
-| **LLM-application risks** at design time — prompt injection, system prompt leakage, excessive agency, OWASP LLM Top 10 coverage | `llm-secure-patterns` (this plugin) |
-| **General code patterns** flagged at code-write time — XSS, `eval`, `pickle`, command injection | [`security-guidance`](https://claude.com/plugins/security-guidance) — pre-tool hook |
-| **Runtime SAST and secrets scanning** | [Semgrep](https://semgrep.com) and [Aikido Security](https://www.aikido.dev) (both via MCP servers) |
-| **Pre-deployment audit by humans** | Engagement with a security firm, not automated tooling |
+Anthropic ships `security-guidance` in the official marketplace as a code-time hook for traditional appsec patterns (command injection, XSS, eval, pickle, os.system). `llm-secure-patterns` is built to be installed alongside it — the two cover different frameworks (OWASP Top 10 vs. OWASP Top 10 for LLM Applications) at different lifecycle stages.
 
-`llm-secure-patterns` maps to the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) — a different framework from the traditional OWASP Top 10. Coverage of LLM-specific categories (LLM01–LLM10) does not overlap with general web-app or runtime-security tooling.
+**Mental model:** `security-sweep` is ESLint for LLM apps (scan-and-report). `llm-secure-patterns` is a senior code reviewer pairing with you during development (ask-explain-apply).
+
+| Stage | Need | Plugin |
+| --- | --- | --- |
+| **Design-time** | LLM-application architectural decisions — prompt injection mitigation, system prompt design, agent action surface, OWASP LLM Top 10 coverage at the moment code is being written | `llm-secure-patterns` (this plugin) |
+| **Code-time** | General code patterns flagged at edit-time — XSS, `eval`, `pickle`, command injection, `os.system` | [`security-guidance`](https://claude.com/plugins/security-guidance) — Anthropic-shipped pre-tool hook |
+| **Code-time** | Real-time SAST hooks during editing | [Semgrep](https://semgrep.com) (via MCP server) |
+| **On-demand** | Whole-codebase regex/pattern scan covering OWASP Top 10 (2025), Mobile Top 10 (2024), and LLM Top 10 (2025) — secrets, injection, auth, config, dependencies, AI-specific patterns | [`security-sweep`](https://github.com/Onome-AJ/security-sweep-plugin) — community plugin, `/security-sweep` slash command |
+| **Runtime** | SAST and secrets scanning in CI/CD | [Semgrep](https://semgrep.com), [Aikido Security](https://www.aikido.dev), [Gitleaks](https://github.com/gitleaks/gitleaks) |
+| **Pre-deployment** | Human security audit | Engagement with a security firm, not automated tooling |
+
+`llm-secure-patterns` maps to the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) — a different framework from the traditional OWASP Top 10. Coverage of LLM-specific categories (LLM01–LLM10) is largely orthogonal to general web-app or runtime-security tooling, with the exception of `security-sweep`, which intentionally spans both frameworks at the regex/pattern-detection layer.
 
 ## Author
 

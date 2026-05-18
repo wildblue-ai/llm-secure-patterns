@@ -2,7 +2,7 @@
 name: secure-external-ingestion
 description: Use when designing or implementing code that fetches URLs, scrapes pages, calls external APIs, parses PDFs/HTML from untrusted sources, builds RAG retrieval pipelines, or processes any external content that will enter an LLM context window — fire this skill during architecture/planning discussions, not just implementation
 metadata:
-  author: Cheryl Aday / WildBlue.AI
+  author: WildBlue.AI
   version: 0.9.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---

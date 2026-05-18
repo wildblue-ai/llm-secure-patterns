@@ -2,7 +2,7 @@
 name: agent-action-surface
 description: Use when designing or wiring up tool_use, function_calling, MCP servers, multi-agent chains, or calling multiple LLM providers (e.g., Gemini for vision plus Claude for reasoning) in the same pipeline — fire this skill during architecture/planning discussions, not just implementation
 metadata:
-  author: Cheryl Aday / WildBlue.AI
+  author: WildBlue.AI
   version: 0.9.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---

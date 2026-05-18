@@ -2,7 +2,7 @@
 name: system-prompt-design
 description: Use when designing, writing, editing, or reviewing system prompts for any LLM application — fire this skill during architecture/planning discussions (before prompts are drafted), not just during implementation
 metadata:
-  author: Cheryl Aday / WildBlue.AI
+  author: WildBlue.AI
   version: 0.9.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---

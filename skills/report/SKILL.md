@@ -4,7 +4,7 @@ description: Generate OWASP LLM Top 10 security posture report from codebase ann
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Write]
 metadata:
-  author: Cheryl Aday / WildBlue.AI
+  author: WildBlue.AI
   version: 0.9.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---

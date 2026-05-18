@@ -11,7 +11,7 @@
       "description": "Secure design patterns for Claude Code LLM applications mapped to OWASP Top 10 for LLM Apps 2025. Five model-invoked skills, a /report slash command, a SessionStart threat-bulletin hook, and Python templates.",
       "version": "0.9.0",
       "author": {
-        "name": "Cheryl Aday / WildBlue.AI",
+        "name": "WildBlue.AI",
         "email": "hello@wildblue.ai"
       },
       "homepage": "https://github.com/wildblue-ai/llm-secure-patterns",
