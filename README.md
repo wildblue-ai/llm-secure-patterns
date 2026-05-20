@@ -61,7 +61,7 @@ Every recommendation in any skill includes:
 
 ## Install
 
-Pending approval to the official `claude-plugins-official` marketplace. Install directly from this repo for now:
+Install directly from this repo (pending approval to the `claude-plugins-official` marketplace):
 
 ```bash
 /plugin marketplace add wildblue-ai/llm-secure-patterns
