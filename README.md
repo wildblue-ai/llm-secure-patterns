@@ -6,47 +6,6 @@ OWASP Top 10 for LLM Applications 2025 — applied at code-time, not after the f
 
 **Important!** Security guidance, not security guarantees. See [SCOPE.md](SCOPE.md) for full details.
 
-## OWASP LLM Top 10 Coverage
-
-This plugin maps to the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025). Skills are organized by developer activity, not by OWASP category — so multiple skills address the same risk from different angles (defense in depth).
-
-### The 10 OWASP LLM Risks
-
-| ID | Risk | Description | Plugin Coverage |
-|----|------|-------------|-----------------|
-| LLM01 | Prompt Injection | Malicious input manipulates model behavior — directly via user input or indirectly via external content | 4 skills (Ingestion, Endpoint, Prompt Design, Agent Surface) |
-| LLM02 | Sensitive Info Disclosure | Model leaks PII, credentials, or system prompt contents in responses | 2 skills (Output Validation, Prompt Design) |
-| LLM03 | Supply Chain | Compromised models, training data, or dependencies | Not addressable by code-time guidance |
-| LLM04 | Data/Model Poisoning | Tampered training data or model weights | Not addressable by code-time guidance |
-| LLM05 | Improper Output Handling | Model output used without validation — XSS, SQL injection, code execution | 1 skill (Output Validation) |
-| LLM06 | Excessive Agency | Model has more permissions than necessary — too many tools, unnecessary write access | 1 skill (Agent Action Surface) |
-| LLM07 | System Prompt Leakage | System prompt extracted via clever querying | 1 skill (Prompt Design) |
-| LLM08 | Vector/Embedding Weaknesses | Attacks on vector databases and embedding pipelines | Not addressable by code-time guidance |
-| LLM09 | Misinformation | Model generates false or misleading content | Partially (Output Validation) |
-| LLM10 | Unbounded Consumption | Denial-of-wallet and resource exhaustion attacks | 2 skills (Ingestion, Endpoint Hardening) |
-
-**Coverage: 7 of 10 categories addressed** (6 fully, 1 partially). The 3 not addressed (LLM03, LLM04, LLM08) require organizational controls — verified model sources, training data integrity, and vector database security — that cannot be addressed by development-time guidance. See [SCOPE.md](SCOPE.md) for details.
-
-### Why LLM01 Appears in 4 Skills
-
-Prompt injection is the #1 OWASP LLM risk because it can enter at every point in the pipeline. Each skill addresses it from a different angle:
-
-| Entry point | Skill | What it does |
-|-------------|-------|-------------|
-| External content (scraped pages, APIs, RAG) | Secure External Ingestion | Sanitizes, normalizes encodings, wraps as untrusted |
-| User input via API endpoint | LLM Endpoint Hardening | Auth, rate limiting, input size caps |
-| System prompt structure | System Prompt Design | Delimiters, anti-extraction, credential separation |
-| Cross-model/cross-agent data flow | Agent Action Surface Control | Trust boundaries, stage isolation, credential separation |
-
-**Language agnostic:** Security guidance applies regardless of your programming language. Skills include inline examples in both Python and TypeScript. Full runnable templates are Python-only in v0.9.0 — TypeScript templates planned for v1.1.0 (PRs welcome).
-
-**`/llm-secure-patterns:report`** — Generates two audit-ready reports from the `# SECURITY:` annotations in your codebase:
-
-- **`SECURITY_POSTURE.md`** — CTO-facing strategic posture mapped to all 10 OWASP LLM categories, with file paths, confidence levels, and risk tradeoff documentation.
-- **`DEVELOPER_RECOMMENDATIONS.md`** — Developer-facing follow-up scaffolds and advisories for decisions only the developer can make (e.g., "switch from the `len/4` heuristic to `client.messages.count_tokens()` before serving non-English traffic"). Only recommendations whose owning skill actually fired in your codebase are included.
-
-A disposition prompt at the end lets you commit both, gitignore both, or mix — useful for public repos where the posture report is auditable but the developer to-do list is not public.
-
 ## Why This Exists
 
 Every existing security plugin in the Claude Code ecosystem either addresses traditional web app security or guards Claude Code's own session. None address the fastest-growing attack surface: **the applications developers are building on top of LLM APIs.**
@@ -133,6 +92,47 @@ and skip remaining gaps (option C).
 The three answers cover all skill UX branches: **intro** (apply now vs build first), **tier** (Low / Moderate / High), and **gap handling** (address / backlog / skip). With all three pre-seeded, skills apply the chosen posture and land `# SECURITY:` annotations without pausing.
 
 **Tradeoff worth naming:** the tier prompts exist so you make informed choices. Skipping them with an all-High pre-seed gives you strong defaults, but you lose the moment where the skill shows you what each tier costs in latency and tokens. For a first pass on a new project, running interactive once (to see what is being applied) and unattended afterward is often the right pattern.
+
+## OWASP LLM Top 10 Coverage
+
+This plugin maps to the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025). Skills are organized by developer activity, not by OWASP category — so multiple skills address the same risk from different angles (defense in depth).
+
+### The 10 OWASP LLM Risks
+
+| ID | Risk | Description | Plugin Coverage |
+|----|------|-------------|-----------------|
+| LLM01 | Prompt Injection | Malicious input manipulates model behavior — directly via user input or indirectly via external content | 4 skills (Ingestion, Endpoint, Prompt Design, Agent Surface) |
+| LLM02 | Sensitive Info Disclosure | Model leaks PII, credentials, or system prompt contents in responses | 2 skills (Output Validation, Prompt Design) |
+| LLM03 | Supply Chain | Compromised models, training data, or dependencies | Not addressable by code-time guidance |
+| LLM04 | Data/Model Poisoning | Tampered training data or model weights | Not addressable by code-time guidance |
+| LLM05 | Improper Output Handling | Model output used without validation — XSS, SQL injection, code execution | 1 skill (Output Validation) |
+| LLM06 | Excessive Agency | Model has more permissions than necessary — too many tools, unnecessary write access | 1 skill (Agent Action Surface) |
+| LLM07 | System Prompt Leakage | System prompt extracted via clever querying | 1 skill (Prompt Design) |
+| LLM08 | Vector/Embedding Weaknesses | Attacks on vector databases and embedding pipelines | Not addressable by code-time guidance |
+| LLM09 | Misinformation | Model generates false or misleading content | Partially (Output Validation) |
+| LLM10 | Unbounded Consumption | Denial-of-wallet and resource exhaustion attacks | 2 skills (Ingestion, Endpoint Hardening) |
+
+**Coverage: 7 of 10 categories addressed** (6 fully, 1 partially). The 3 not addressed (LLM03, LLM04, LLM08) require organizational controls — verified model sources, training data integrity, and vector database security — that cannot be addressed by development-time guidance. See [SCOPE.md](SCOPE.md) for details.
+
+### Why LLM01 Appears in 4 Skills
+
+Prompt injection is the #1 OWASP LLM risk because it can enter at every point in the pipeline. Each skill addresses it from a different angle:
+
+| Entry point | Skill | What it does |
+|-------------|-------|-------------|
+| External content (scraped pages, APIs, RAG) | Secure External Ingestion | Sanitizes, normalizes encodings, wraps as untrusted |
+| User input via API endpoint | LLM Endpoint Hardening | Auth, rate limiting, input size caps |
+| System prompt structure | System Prompt Design | Delimiters, anti-extraction, credential separation |
+| Cross-model/cross-agent data flow | Agent Action Surface Control | Trust boundaries, stage isolation, credential separation |
+
+**Language agnostic:** Security guidance applies regardless of your programming language. Skills include inline examples in both Python and TypeScript. Full runnable templates are Python-only in v0.9.0 — TypeScript templates planned for v1.1.0 (PRs welcome).
+
+**`/llm-secure-patterns:report`** — Generates two audit-ready reports from the `# SECURITY:` annotations in your codebase:
+
+- **`SECURITY_POSTURE.md`** — CTO-facing strategic posture mapped to all 10 OWASP LLM categories, with file paths, confidence levels, and risk tradeoff documentation.
+- **`DEVELOPER_RECOMMENDATIONS.md`** — Developer-facing follow-up scaffolds and advisories for decisions only the developer can make (e.g., "switch from the `len/4` heuristic to `client.messages.count_tokens()` before serving non-English traffic"). Only recommendations whose owning skill actually fired in your codebase are included.
+
+A disposition prompt at the end lets you commit both, gitignore both, or mix — useful for public repos where the posture report is auditable but the developer to-do list is not public.
 
 ## What This Is NOT
 
