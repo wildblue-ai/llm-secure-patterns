@@ -148,7 +148,7 @@ Everything in Level B (Moderate), plus:
 
 **Tradeoff:** Significant complexity, requires output monitoring infrastructure. Recommended for high-stakes applications where system prompt confidentiality is critical.
 
-- **Cost:** The v0.9.0 keyword-blocklist pattern (`scan_for_prompt_leakage`) adds no LLM calls — its cost is a single string scan per response. The v1.0.1 model-based filter will add +1 LLM call per request; at that point, calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing, show a concrete estimate with "(estimated)" after the number, and always add: "Your actual cost depends on content size."
+- **Cost:** The v0.9.0 keyword-blocklist pattern (`scan_for_prompt_leakage`) adds no LLM calls — its cost is a single string scan per response. The v1.0.1 model-based filter will add +1 LLM call per request; at that point, calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing, show a concrete estimate with "(estimated)" after the number, and always add: "Your actual cost depends on content size, provider pricing, etc."
 - **Latency:** The keyword-blocklist pattern adds sub-millisecond overhead. The v1.0.1 model-based filter will add +1 round-trip to the filter model per request; at that point, estimate based on the developer's chosen model and always add: "Latency varies by model and content size."
   - For current per-token pricing, refer to https://docs.anthropic.com/en/docs/about-claude/models — costs vary by model choice and content size. This is an estimate only; your actual costs may vary.
 

@@ -140,6 +140,7 @@ A disposition prompt at the end lets you commit both, gitignore both, or mix —
 - Not a guarantee of security
 - Not a replacement for professional security review
 - Not general application security (see [SCOPE.md](SCOPE.md) and the Related plugins table below)
+- **Not authoritative on LLM pricing** — cost and latency estimates shown for Level C tier options are approximations from the model's training-time knowledge. LLM provider pricing changes; verify against current pricing pages before using estimates for budgeting decisions.
 
 See [SCOPE.md](SCOPE.md) for detailed coverage boundaries.
 

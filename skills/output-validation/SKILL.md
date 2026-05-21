@@ -225,7 +225,7 @@ Everything in Level B (Moderate), plus:
 - **Effectiveness:** Reduces risk across multiple validation layers (CSP, classifier, sandboxing, action review) — no single layer is sufficient alone
 - **Tradeoff:** Significant infrastructure complexity, recommended for high-stakes applications
 
-- **Cost:** +1 LLM call per request for classifier. Calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing. Show a concrete estimate with "(estimated)" after the number. Always add: "Your actual cost depends on content size."
+- **Cost:** +1 LLM call per request for classifier. Calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing. Show a concrete estimate with "(estimated)" after the number. Always add: "Your actual cost depends on content size, provider pricing, etc."
 - **Latency:** +1 round-trip to classifier model (estimated). Estimate based on the developer's chosen model — faster models like Haiku add less latency than Sonnet. Always add: "Latency varies by model and content size."
   - For current per-token pricing, refer to https://docs.anthropic.com/en/docs/about-claude/models — costs vary by model choice and content size. This is an estimate only; your actual costs may vary.
 

@@ -155,7 +155,7 @@ Everything in Level B (Moderate), plus:
 
 **Tradeoff:** Most robust available approach for multi-agent systems. Significant infrastructure complexity, recommended for high-stakes agentic systems where unauthorized actions have severe consequences.
 
-- **Cost:** +1 LLM call per stage boundary for validation, plus container hosting overhead. Calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing. Show a concrete estimate with "(estimated)" after the number. Always add: "Your actual cost depends on content size and number of pipeline stages."
+- **Cost:** +1 LLM call per stage boundary for validation, plus container hosting overhead. Calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing. Show a concrete estimate with "(estimated)" after the number. Always add: "Your actual cost depends on content size, provider pricing, and number of pipeline stages."
 - **Latency:** +1 round-trip per stage boundary for validation, plus container startup overhead if using isolated environments (estimated). Always add: "Latency varies by model, content size, and number of pipeline stages."
   - Infrastructure cost: container isolation adds hosting overhead (not token cost)
   - For current per-token pricing, refer to https://docs.anthropic.com/en/docs/about-claude/models — costs vary by model choice and content size. This is an estimate only; your actual costs may vary.
