@@ -61,7 +61,14 @@ Every recommendation in any skill includes:
 
 ## Install
 
-Install directly from this repo (pending approval to the `claude-plugins-official` marketplace):
+Install from the Claude Code community marketplace:
+
+```bash
+/plugin marketplace add anthropics/claude-plugins-community
+/plugin install llm-secure-patterns@claude-community
+```
+
+Or directly from this repo:
 
 ```bash
 /plugin marketplace add wildblue-ai/llm-secure-patterns
@@ -169,7 +176,7 @@ Anthropic ships `security-guidance` in the official marketplace as a code-time h
 AI Risk & Readiness Consultancy | Pre-deployment audits for SMBs
 
 For comprehensive AI security assessments beyond what automated tooling provides:
-hello@wildblue.ai
+support@wildblue.ai
 
 ## Acknowledgments
 
