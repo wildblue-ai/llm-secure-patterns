@@ -25,7 +25,7 @@ import re
 # Level: Standard
 # Pattern: system_prompt_template
 # Requires layering: Output filtering (Level C), input sanitization (Skill 1), output validation (Skill 3)
-# Applied by: llm-secure-patterns v0.9.0 / System Prompt Design
+# Applied by: llm-secure-patterns v1.0.0 / System Prompt Design
 # Date applied: 2026-03-30
 
 

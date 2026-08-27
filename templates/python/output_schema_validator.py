@@ -20,7 +20,7 @@ Provided as-is — see SCOPE.md for limitations.
 # Level: Standard
 # Pattern: output_schema_validator
 # Requires layering: Input sanitization (Skill 1), system prompt design (Skill 4), CSP headers (Level C)
-# Applied by: llm-secure-patterns v0.9.0 / Output Validation and Sanitization
+# Applied by: llm-secure-patterns v1.0.0 / Output Validation and Sanitization
 # Date applied: 2026-03-30
 
 import html

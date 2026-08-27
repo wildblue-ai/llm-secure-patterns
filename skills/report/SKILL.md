@@ -1,11 +1,11 @@
 ---
 name: report
-description: Generate OWASP LLM Top 10 security posture report from codebase annotations
+description: Review or audit an existing codebase's security posture against the OWASP LLM Top 10. Reads `# SECURITY:` annotations placed by this plugin and falls back to a best-effort source scan when none are present; writes SECURITY_POSTURE.md and DEVELOPER_RECOMMENDATIONS.md. Use when asked to check, review, audit, scan, or report on the security of LLM/AI integration code.
 user-invocable: true
 allowed-tools: [Read, Grep, Glob, Write]
 metadata:
   author: WildBlue.AI
-  version: 0.9.0
+  version: 1.0.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
@@ -25,13 +25,17 @@ Follow these steps in order when the user invokes `/report`.
 
 ### Step 1 — Collect annotations
 
-Use Grep to search for `SECURITY:` across all files in the project.
+Use Grep to search for `SECURITY:` across all files in the project to find **candidate** annotations.
 
 - Pattern: `SECURITY:`
 - Exclude these directories: `node_modules`, `.git`, `venv`, `__pycache__`, `.env`, `dist`, `build`
 - Search all file types (the annotation format is `# SECURITY:` in Python/YAML/shell and `// SECURITY:` in JS/TS/Go/Java/etc.)
 
-For each match, extract the following fields from the structured annotation comment block:
+For each candidate match, read several lines of surrounding context to capture the full structured comment block (annotations span multiple comment lines).
+
+**Attribution filter — required.** The bare `SECURITY:` token is a common ad-hoc comment, so treat the grep as a candidate finder, not the authority. Count a block as one of *this plugin's* annotations ONLY if it contains an `Applied by: llm-secure-patterns` line. A `# SECURITY:` / `// SECURITY:` comment WITHOUT that signature is not ours: do not map it to OWASP coverage, do not count it toward any tier, and do not include it in the per-skill aggregation. If unattributed `SECURITY:` comments are present, you may note them once under a brief "Unattributed security comments (not placed by this plugin)" heading so the developer knows they exist — nothing more.
+
+For each **attributed** annotation, extract the following fields from the structured comment block:
 
 | Field | Description |
 |---|---|
@@ -46,9 +50,7 @@ For each match, extract the following fields from the structured annotation comm
 | **OWASP version** | Which OWASP LLM Top 10 version the annotation references (e.g., `2025`) |
 | **Plugin version** | Version of llm-secure-patterns that placed the annotation |
 
-If any field is missing from an annotation, note it as `[not recorded]` in the report.
-
-Read several lines of context around each annotation to capture the full structured comment block (annotations may span multiple comment lines).
+If a field is missing from an attributed annotation, note it as `[not recorded]` in the report.
 
 ### Step 2 — Map to OWASP LLM Top 10 categories
 
@@ -88,7 +90,7 @@ Organize all collected annotations by OWASP category. The canonical list is:
 
 ### Step 3 — Handle unannotated codebases
 
-If **zero** `# SECURITY:` or `// SECURITY:` annotations are found, perform a best-effort LLM analysis of the codebase:
+If **zero attributed** annotations are found (no block carries an `Applied by: llm-secure-patterns` line — unattributed `SECURITY:` comments do not count), perform a best-effort LLM analysis of the codebase:
 
 1. Use Glob to discover source files across the project.
 2. Use Grep to search for common security patterns:
@@ -110,7 +112,7 @@ Check each annotation for staleness using these rules:
 | Condition | Flag |
 |---|---|
 | OWASP version older than `2025` | Flag as referencing an outdated OWASP version |
-| Plugin version older than the currently installed version (`0.9.0`) | Flag as placed by an older plugin version |
+| Plugin version older than the currently installed version (`1.0.0`) | Flag as placed by an older plugin version |
 | "Date applied" more than 6 months before today's date | Flag as potentially stale |
 
 For every stale annotation, recommend re-running the relevant skill to refresh the mitigation and update the annotation.
@@ -134,7 +136,7 @@ This skill-level tier rollup feeds the **Skill Coverage Summary** table in Step 
 
 Write the report to the project root (`SECURITY_POSTURE.md`) using the Write tool.
 
-**The report has two sections: a Summary and an optional Detailed view.**
+**`SECURITY_POSTURE.md` always contains two sections: a Summary and a Detailed view. Both are written to the file by default — the Detailed view is NOT optional and is never gated behind a question.**
 
 Use this format:
 
@@ -145,33 +147,45 @@ Use this format:
 
   Project:    [project directory path]
   Date:       [today's date]
-  Generated:  llm-secure-patterns v0.9.0
+  Generated:  llm-secure-patterns v1.0.0
   Framework:  OWASP Top 10 for LLM Applications 2025 (Nov 2025)
 
 ═══════════════════════════════════════════════════════════════════
 
-  COVERAGE SUMMARY: [N] of 7 addressable categories mitigated
+  COVERAGE SUMMARY: [N] of 7 code-time-addressable categories mitigated
 
-  [Table with two columns: Category and Status]
+  [Table with two columns: Category and Status. List ONLY the 7
+   code-time-addressable categories: LLM01, LLM02, LLM05, LLM06, LLM07,
+   LLM09, LLM10. Do NOT list LLM03, LLM04, or LLM08 in this table — they
+   have their own section at the end of the report.]
 
-  For each category, use one of these status values:
+  Use the OWASP category title as the row label (e.g., "LLM05: Improper
+  Output Handling"). For each category, use one of these status values:
   - MITIGATED (high|moderate|low) — [brief description]
   - PARTIALLY MITIGATED — [brief description]  (use ONLY for LLM09 when
     Output Validation annotations exist; LLM09 is partially addressable
     by design, so even with annotations applied, full coverage is not
     achievable via code-time guidance)
-  - NOT ADDRESSED — apply [skill name]
-  - NOT ADDRESSED (only partially addressable in general) — for LLM09
-    when no Output Validation annotations exist; reads as: not addressed
-    in this codebase, and even if addressed, max coverage is partial.
-  - NOT ADDRESSABLE BY CODE-TIME GUIDANCE
+  - NOT ADDRESSED — for any of the 7 addressable categories with no
+    attributed annotation. Keep the status word NOT ADDRESSED in the
+    table; the detailed view explains why (see "NOT ADDRESSED wording"
+    in Step 7). Never downgrade a category to "not applicable" — the
+    status stays a flag even when the surface appears absent.
+  - For LLM09 with no Output Validation annotations, append "(only
+    partially addressable in general)": not addressed here, and even if
+    addressed, max coverage is partial.
+  - If the applied pattern carries a documented reference-implementation
+    gap or deployment-topology caveat (check the fired skill's own
+    SKILL.md — a "Known reference-implementation gap" note or similar,
+    e.g. in-memory state that does not survive multi-process deployment),
+    append a short parenthetical to the brief description in THIS table.
+    Do not defer the caveat solely to the detailed Gaps field below — the
+    summary table is what gets skimmed. Example: "MITIGATED (moderate) —
+    token-budget limiter (single-process only)".
 
-  NOT ADDRESSABLE BY CODE-TIME GUIDANCE:
-  LLM03 (Supply Chain), LLM04 (Data/Model Poisoning), and LLM08
-  (Vector/Embedding Weaknesses) require organizational controls:
-  verified model sources, training data integrity, dependency
-  scanning, and vector database security. These cannot be addressed
-  by development-time guidance.
+  After the table, add this pointer line:
+  "3 categories are not addressable by code-time guidance (LLM03, LLM04,
+  LLM08) — see the section at the end of this report."
 
   ─────────────────────────────────────────────────────────────────
   SKILL COVERAGE SUMMARY
@@ -213,26 +227,25 @@ Use this format:
   of code. This report documents mitigations applied, not security
   achieved. See SCOPE.md for full limitations.
 
-  Generated by llm-secure-patterns v0.9.0
+  Generated by llm-secure-patterns v1.0.0
   For comprehensive AI security assessment: hello@wildblue.ai
 ═══════════════════════════════════════════════════════════════════
 ```
 
 **Formatting rules:**
 - Use "mitigates" not "prevents" throughout the report.
-- For NOT ADDRESSABLE categories (LLM03, LLM04, LLM08), use that exact status and omit mitigation/confidence/staleness fields.
-- For NOT ADDRESSED categories, set status to NOT ADDRESSED and include the skill suggestion.
+- LLM03, LLM04, and LLM08 do NOT appear in the coverage table or the detailed findings — they go only in the "NOT ADDRESSABLE BY CODE-TIME GUIDANCE" section at the end of the file (Step 7b).
+- For NOT ADDRESSED categories, keep the status NOT ADDRESSED and add the best-effort explanation per Step 7 (surface found → name the gap + skill; surface absent → "it does not currently appear…"; unknown → conditional). Never downgrade NOT ADDRESSED to "not applicable."
 - For MITIGATED categories, include the confidence level in parentheses.
 - For LLM09 specifically, distinguish "partially addressable" (capability — what the plugin can ever do) from "partially mitigated" (status — what was actually applied here). Never say "partially addressed" alone — it conflates the two.
 - The coverage fraction counts only the 7 addressable categories (excludes LLM03, LLM04, LLM08). LLM09 counts as mitigated when PARTIALLY MITIGATED, since the partial coverage is the maximum achievable.
+- A topology- or deployment-dependent caveat on a MITIGATED control (e.g. in-memory state, single-process assumptions) must appear inline in the summary-table description, not only in the detailed Gaps field — an unqualified MITIGATED badge next to a control whose core guarantee depends on an unstated deployment assumption misrepresents what was verified.
 
-### Step 7 — Offer detailed version
+### Step 7 — Always append the detailed findings
 
-After displaying the summary on screen, ask:
+`SECURITY_POSTURE.md` is a document, not a chat message — the brevity / one-screen rule does NOT apply to it. Always write the detailed findings into the file, below the summary. Do NOT ask the user whether to include detail; include it by default. (The on-screen chat summary stays brief; the file carries the full detail.)
 
-> "Would you like the detailed version showing file paths, confidence levels, and risk tradeoffs for each mitigation?"
-
-If the user says yes, display the detailed format for each MITIGATED category:
+Write the detailed format into the file for each MITIGATED category:
 
 ```
 LLM01: Prompt Injection — MITIGATED (partial)
@@ -247,19 +260,22 @@ LLM01: Prompt Injection — MITIGATED (partial)
   Staleness: [if applicable]
 ```
 
-For NOT ADDRESSED categories in the detailed view:
+For NOT ADDRESSED categories in the detailed view, keep the OWASP category title and the NOT ADDRESSED status, then add a best-effort explanation. Run a quick surface scan for that category (reuse the Step 3 pattern greps — they apply per-category here even when other categories are annotated) and pick ONE of the three forms below. Never change the status; only state "it does not currently appear…" when the scan actually ran and found nothing.
+
 ```
-LLM05: Improper Output Handling — NOT ADDRESSED
-  Suggested: Apply Output Validation and Sanitization skill
-  Risk: [brief description of what's at risk without this mitigation]
+# surface NOT detected
+LLM05: Improper Output Handling — NOT ADDRESSED — it does not currently appear that your app renders, stores, or forwards LLM output.
+
+# surface detected but unsecured (a confirmed gap)
+LLM05: Improper Output Handling — NOT ADDRESSED — LLM output appears to be rendered/stored at app/views.py:42 without validation. Apply Output Validation.
+
+# could not determine
+LLM05: Improper Output Handling — NOT ADDRESSED — if your app renders, stores, or forwards LLM output, apply Output Validation.
 ```
 
-For NOT ADDRESSABLE categories in the detailed view:
-```
-LLM03: Supply Chain — NOT ADDRESSABLE BY CODE-TIME GUIDANCE
-  Requires: Verified model sources, signed packages, dependency scanning
-  See: SCOPE.md for full explanation
-```
+The surface phrase is category-specific — describe what that OWASP category actually covers (e.g., LLM06 Excessive Agency → "grant the LLM tools, function-calling, or autonomous actions"; LLM01 Prompt Injection → "fetch or ingest untrusted external content into the model context").
+
+LLM03, LLM04, and LLM08 are NOT listed per-category in the detailed findings — they have a dedicated section at the end of the report (see Step 7b below).
 
 Append the detailed section to `SECURITY_POSTURE.md` below the summary, separated by a clear heading:
 
@@ -270,6 +286,31 @@ Append the detailed section to `SECURITY_POSTURE.md` below the summary, separate
 ```
 
 The detailed section goes in the same file — one document is easier to share with auditors or management.
+
+### Step 7b — Append the NOT ADDRESSABLE section at the end of the file
+
+After the detailed findings, always append this final section. It lists the three OWASP categories the plugin cannot address at code time, each with one to two sentences of guidance and the OWASP link. Always include all three:
+
+```markdown
+═══════════════════════════════════════════════════════════════════
+          NOT ADDRESSABLE BY CODE-TIME GUIDANCE
+═══════════════════════════════════════════════════════════════════
+
+  Real OWASP LLM risks, but outside what code-time patterns can
+  mitigate — handle these through process and infrastructure controls.
+
+  LLM03: Supply Chain — Requires organizational controls: model
+    provenance verification, dependency auditing, signed artifacts, and
+    trusted registries.
+  LLM04: Data and Model Poisoning — Requires controls at the training
+    and fine-tuning stages: data provenance, anomaly detection in
+    training metrics, and access controls on model artifacts.
+  LLM08: Vector and Embedding Weaknesses — Requires controls at the
+    retrieval layer: access control on vector stores, embedding
+    integrity verification, and retrieval result filtering.
+
+  Full guidance: https://owasp.org/www-project-top-10-for-large-language-model-applications/ (published November 2025)
+```
 
 ### Step 8 — Generate DEVELOPER_RECOMMENDATIONS.md
 
@@ -312,7 +353,7 @@ When in doubt about whether a trigger is satisfied, include the recommendation. 
 
   Project:    [project directory path]
   Date:       [today's date]
-  Generated:  llm-secure-patterns v0.9.0
+  Generated:  llm-secure-patterns v1.0.0
   Companion:  SECURITY_POSTURE.md (CTO posture report)
 
 ═══════════════════════════════════════════════════════════════════
@@ -331,7 +372,7 @@ When in doubt about whether a trigger is satisfied, include the recommendation. 
 order by decision number, separated by a horizontal rule.]
 
 ═══════════════════════════════════════════════════════════════════
-  Generated by llm-secure-patterns v0.9.0
+  Generated by llm-secure-patterns v1.0.0
   For comprehensive AI security assessment: hello@wildblue.ai
 ═══════════════════════════════════════════════════════════════════
 ```

@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 # Level: Standard
 # Pattern: templates/python/sanitize_web_content.py
 # Requires layering: Input classifier (Level C), output validation (Skill 3), action surface restriction (Skill 5)
-# Applied by: llm-secure-patterns v0.9.0 / Skill 1: Secure External Ingestion
+# Applied by: llm-secure-patterns v1.0.0 / Skill 1: Secure External Ingestion
 
 
 # Zero-width and invisible Unicode characters to strip

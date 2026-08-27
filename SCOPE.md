@@ -77,9 +77,19 @@ The `normalize_encodings` function uses Unicode NFKC normalization to collapse h
 - **Cyrillic / Greek Latin-lookalikes** — е о а ѕ р с (Cyrillic small e, o, a, dze, er, es) and α ο ν (Greek alpha, omicron, nu)
 - **CJK Latin-lookalikes** — fullwidth Latin and CJK punctuation that survive partial normalization
 - **Regional Indicator Symbols** — 🇮🇬🇳🇴🇷🇪 (block U+1F1E6–U+1F1FF)
-- **Unicode bidirectional override controls** — U+202A–U+202E, U+2066–U+2069 (these can make displayed text differ from tokenized text and are not removed by `remove_zero_width_chars` in v0.9.0)
+- **Unicode bidirectional override controls** — U+202A–U+202E, U+2066–U+2069 (these can make displayed text differ from tokenized text and are not removed by `remove_zero_width_chars` in v1.0.0)
 
 Full homoglyph normalization would require a Unicode confusables mapping (TR39), which is not bundled. NFKC is the standard, widely-available first layer — it is not complete coverage. For higher-assurance handling, run an additional pass that confines input to a known-safe script set (e.g. ASCII or single-script + digits) and rejects mixed-script tokens.
+
+### Token-estimation heuristic (`len/4`) undercounts non-Latin scripts
+The `len(text) / 4` approximation used as the Level A/B token-estimation fallback systematically underestimates token counts for non-Latin scripts (CJK, Cyrillic, Arabic, Devanagari commonly average closer to 1–2 characters per token, not 4). This is inherent to any fixed character-count heuristic — no single divisor holds across scripts. Production deployments must switch to the model's real tokenizer (e.g. `client.messages.count_tokens()`) before the input-size cap is trustworthy for non-Latin input; this is documented as the production path in `llm-endpoint-hardening/SKILL.md`, not an unaddressed gap.
+
+## Known Limitations — Reference Implementation Gaps (Planned)
+
+Unlike the items above, these are gaps in the current reference implementation that a real fix can close. They are tracked on the roadmap (see `CHANGELOG.md` Roadmap), not permanent.
+
+### In-memory rate-limiter and spend-monitor state does not survive multi-process deployment
+The Level B/C reference implementation in `templates/python/token_budget_limiter.py` holds per-user budget counters, cumulative spend, and circuit-breaker state in an in-process `dict` guarded by an `asyncio.Lock` — demonstration-grade state, not a distributed store. Under any deployment with more than one process (PM2/Gunicorn/uWSGI worker pools, multiple Kubernetes pods), each process holds independent counters: a configured $5/day per-user budget effectively becomes $5/day *per worker*, silently, since nothing coordinates the count across processes. Closing this requires an atomic external store (Redis `INCRBY` + TTL, or a Lua check-and-reserve script) behind the interface the skill already documents (`check_and_reserve`, `record_actual_usage`, `is_circuit_breaker_open`). As of v1.0.0, the plugin does not ask which deployment topology applies during tier selection and does not ship a Redis-backed reference implementation — see `CHANGELOG.md` Roadmap (v1.0.1) for the planned fix: an explicit topology question during Level B/C selection plus a Redis-backed template offered when the answer is multi-process.
 
 ## Known Plugin Interactions
 

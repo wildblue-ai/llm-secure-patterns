@@ -2,7 +2,7 @@
 
 OWASP Top 10 for LLM Applications 2025 — applied at code-time, not after the fact.
 
-**v0.9.0 pre-release** — Four rounds of cross-model adversarial review (Claude Sonnet 4.6, GPT-4o, Gemini 2.5 Pro, with Claude Opus 4.6 triage). Covers 7 of 10 OWASP LLM Top 10 2025 categories at code-time; the remaining 3 require organizational controls.
+**v1.0.0** — Four rounds of cross-model adversarial review (Claude Sonnet 4.6, GPT-4o, Gemini 2.5 Pro, with Claude Opus 4.6 triage). Covers 7 of 10 OWASP LLM Top 10 2025 categories at code-time; the remaining 3 require organizational controls.
 
 **Important!** Security guidance, not security guarantees. See [SCOPE.md](SCOPE.md) for full details.
 
@@ -25,6 +25,73 @@ This plugin fills that gap by making [OWASP Top 10 for LLM Applications 2025](ht
 | Agent Action Surface Control | Wiring up tool_use, MCP, multi-agent chains | LLM06, LLM01 |
 
 Each skill presents **tiered mitigation options** (Low / Moderate / High) with risk vs. cost tradeoffs, so you understand what you're choosing and why.
+
+## See It in Action
+
+Say you're adding a `/chat` endpoint that forwards a user's message to the Claude API. Here is the code most developers write — and what this plugin does instead.
+
+**Without the plugin** — this ships, it works, and it quietly exposes you:
+
+```python
+@app.post("/chat")
+async def chat(request: ChatRequest):
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        messages=[{"role": "user", "content": request.message}],
+    )
+    return {"reply": response.content[0].text}
+```
+
+No authentication (anyone who finds the URL spends your API budget), no input cap, no `max_tokens` (a single "write the longest story you can" runs up the bill), no rate limiting. That is OWASP LLM01 and LLM10, live in production.
+
+**With the plugin** — you start writing that same endpoint and the LLM Endpoint Hardening skill fires before any code is written. It leads with the intro (**A) Apply security now** / **B) Build first, secure later**), then a compact picker:
+
+![The LLM Endpoint Hardening skill firing in Claude Code: a compact Low / Moderate / High picker, each tier showing its added cost and what it does not catch](docs/images/3_choose_a_security_level.png)
+
+```
+LLM Endpoint Hardening — OWASP LLM01/LLM10. Pick a level (each builds on the last):
+
+A) Low — no added cost. Auth (JWT) + input size cap + max_tokens + per-user rate limiting.
+   Misses cost-based / denial-of-wallet attacks.
+B) Moderate (recommended) — no added cost. + token-budget limit + spend circuit breaker + secrets-manager keys + request logging.
+   Denial-of-wallet mitigated; distributed / slow-drip bypasses remain.
+C) High — +1 classifier call/req (estimated). + per-tier budgets + priority queue + per-tier credentials + injection classifier.
+   Adversarial inputs can evade the classifier.
+
+Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "verbose" (all tiers) for the full breakdown.
+```
+
+Every tier names what it still does **not** catch, even in this compact form — that line never gets dropped. Reply `details B` to expand just that tier (evidence, known bypasses, layering requirements, and full cost/latency), or `verbose` to expand all three at once. Want the long form every time? Add `llm-secure-patterns: verbose` to your `CLAUDE.md`.
+
+You pick a tier, and Claude writes the code with the audit trail baked in:
+
+```python
+# SECURITY: LLM01/LLM10 (Endpoint Hardening) — token-budget rate limiting, spend
+#   circuit breaker, real-tokenizer input cap (fail-closed), and output-token cap
+# Confidence: MODERATE — mitigates denial-of-wallet, but in-memory limiter/monitor
+#   are single-process (use Redis in prod) and check/record is not atomic (TOCTOU).
+# Level: Moderate
+# Declined: High — no tiered budgets, request prioritization, or injection classifier (skipped per developer).
+# Applied by: llm-secure-patterns v1.0.0 / LLM Endpoint Hardening
+# Date applied: 2026-06-03
+@app.post("/chat")
+async def chat(request: ChatRequest, user: User = Depends(get_current_user)):
+    if spend_monitor.is_kill_switch_triggered():
+        raise HTTPException(503, "Service temporarily unavailable (spend cap).")
+    # real-tokenizer input cap, fail-closed if counting is unavailable (elided)
+    ...
+    allowed, reason = budget_limiter.check_budget(user.id, estimated_tokens)
+    if not allowed:
+        raise HTTPException(429, "Rate limit exceeded. Try again later.")
+    response = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=MAX_OUTPUT_TOKENS,  # required — caps output denial-of-wallet
+        messages=[{"role": "user", "content": request.message}],
+    )
+    ...
+```
+
+The `# SECURITY:` comments are the audit trail. Every control names its OWASP ID, confidence rating, tier, and known limitations — so a reviewer can see exactly what was applied, what was declined, and what still needs layering. Run `/llm-secure-patterns:report` at the end of the session to roll all of these up into a posture report.
 
 ## How It Works
 
@@ -81,6 +148,17 @@ The five skills are designed to fire automatically when Claude Code detects a ma
 
 **Run `/llm-secure-patterns:report` at the end of any session that touched LLM code** — even if you saw the security intros fire during implementation. Model behavior varies, and a skill can occasionally miss its trigger (asking a clarifying implementation question before firing the security skill, for example). The report scans your codebase for `# SECURITY:` annotations and produces two files: `SECURITY_POSTURE.md` (posture against the OWASP LLM Top 10, for sharing with reviewers) and `DEVELOPER_RECOMMENDATIONS.md` (follow-up scaffolds and advisories for the developer, scoped to skills that actually fired). Together they make it easy to spot LLM surfaces where no security skill landed and to know what action remains. Treat running the report as a standing safety net, not an optional extra.
 
+### How options are presented
+
+When a skill fires it shows a **brief picker** by default — one line per tier (Low / Moderate / High) with the tier's added cost and the single most important thing it does not catch, then an action line:
+
+- **Apply** — reply `A` / `B` / `C`.
+- **Decide** — reply `D`; the skill asks a few diagnostic questions, then recommends a tier.
+- **Go deeper** — reply `details B` (or any tier letter) to expand just that tier: full control list, evidence, known bypasses, layering requirements, and full cost/latency. Plain `details` expands the recommended tier; `verbose` expands all three at once.
+- **Always verbose** — add a line `llm-secure-patterns: verbose` to your project or user `CLAUDE.md`. The skills read it from context and show full detail for all tiers instead of the brief picker. An explicit preference always beats the brief default.
+
+The "what it does not catch" line is never dropped, even in the briefest form — informed choice is the point.
+
 ### Running unattended
 
 Two different kinds of prompt interrupt a Claude Code session:
@@ -132,12 +210,14 @@ Prompt injection is the #1 OWASP LLM risk because it can enter at every point in
 | System prompt structure | System Prompt Design | Delimiters, anti-extraction, credential separation |
 | Cross-model/cross-agent data flow | Agent Action Surface Control | Trust boundaries, stage isolation, credential separation |
 
-**Language agnostic:** Security guidance applies regardless of your programming language. Skills include inline examples in both Python and TypeScript. Full runnable templates are Python-only in v0.9.0 — TypeScript templates planned for v1.1.0 (PRs welcome).
+**Language agnostic:** Security guidance applies regardless of your programming language. Skills include inline examples in both Python and TypeScript. Full runnable templates are Python-only in v1.0.0 — TypeScript templates planned for v1.1.0 (PRs welcome).
 
 **`/llm-secure-patterns:report`** — Generates two audit-ready reports from the `# SECURITY:` annotations in your codebase:
 
 - **`SECURITY_POSTURE.md`** — CTO-facing strategic posture mapped to all 10 OWASP LLM categories, with file paths, confidence levels, and risk tradeoff documentation.
 - **`DEVELOPER_RECOMMENDATIONS.md`** — Developer-facing follow-up scaffolds and advisories for decisions only the developer can make (e.g., "switch from the `len/4` heuristic to `client.messages.count_tokens()` before serving non-English traffic"). Only recommendations whose owning skill actually fired in your codebase are included.
+
+Example output: [`SAMPLE_SECURITY_POSTURE_REPORT.md`](examples/SAMPLE_SECURITY_POSTURE_REPORT.md) · [`SAMPLE_DEVELOPER_RECOMMENDATIONS_REPORT.md`](examples/SAMPLE_DEVELOPER_RECOMMENDATIONS_REPORT.md)
 
 A disposition prompt at the end lets you commit both, gitignore both, or mix — useful for public repos where the posture report is auditable but the developer to-do list is not public.
 

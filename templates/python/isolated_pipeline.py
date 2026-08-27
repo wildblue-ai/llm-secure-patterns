@@ -34,7 +34,7 @@ from typing import Any
 # Pattern: isolated_pipeline
 # Requires layering: Input sanitization (Skill 1), output validation (Skill 3),
 #     system prompt design (Skill 4)
-# Applied by: llm-secure-patterns v0.9.0 / Agent Action Surface Control
+# Applied by: llm-secure-patterns v1.0.0 / Agent Action Surface Control
 
 
 # Tools whose name prefix indicates a read-only operation. Any tool whose

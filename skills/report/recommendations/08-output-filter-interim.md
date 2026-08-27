@@ -7,7 +7,7 @@ type: advisory
 
 ## Output filter for system-prompt leakage — interim
 
-A full Level C output filter template with adversarial-evasion caveats is planned for **v1.0.1**. For v0.9.0, the skill ships a keyword blocklist helper (`scan_for_prompt_leakage`) that matches known system-prompt fragments.
+A full Level C output filter template with adversarial-evasion caveats is planned for **v1.0.1**. For v1.0.0, the skill ships a keyword blocklist helper (`scan_for_prompt_leakage`) that matches known system-prompt fragments.
 
 **Use the blocklist as a starting point, not a finish line:**
 

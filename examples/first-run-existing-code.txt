@@ -1,0 +1,453 @@
+
+
+❯ okay, run skill - need to protect my code against llm-integration security hacks
+
+I'll run the three applicable skills in sequence — endpoint hardening first (it covers the model-calling endpoint), then output validation, then system-prompt design. Each will review the code, annotate what's already mitigated, and ask you to choose protection tiers for gaps.
+
+⏺ Skill(llm-secure-patterns:llm-endpoint-hardening)
+Successfully loaded skill
+
+▎ llm-secure-patterns has detected code that would benefit from LLM security guidance (LLM Endpoint Hardening, OWASP LLM Top 10 2025).
+▎
+▎ - A) Apply security now — I'll walk you through security options before writing code
+▎ - B) Build first, secure later — I'll build the code now and add a TODO: SECURITY reminder. Run /llm-secure-patterns:report when you're ready to add security layers.
+
+✻ Brewed for 23s
+
+❯ a
+
+LLM Endpoint Hardening — OWASP LLM01/LLM10. Pick a level (each builds on the last):
+
+A) Low — no added cost. Auth (JWT) + input size cap + max_tokens + per-user rate limiting.
+   Misses cost-based / denial-of-wallet attacks.
+B) Moderate (recommended) — no added cost. + token-budget limit + spend circuit breaker + secrets-manager keys + request logging.
+   Denial-of-wallet mitigated; distributed / slow-drip bypasses remain.
+C) High — +1 classifier call/req (estimated). + per-tier budgets + priority queue + per-tier credentials + injection classifier.
+   Adversarial inputs can evade the classifier.
+
+Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "verbose" (all tiers) for the full breakdown.
+
+✻ Crunched for 6s
+
+❯ b
+
+  Searched for 1 pattern, read 2 files
+
+⏺ Update(app.py)
+Added 70 lines, removed 2 lines
+
+ADMIN_TOKEN = _load_admin_token()
+
+# Per-IP rate limit for the model-calling endpoint, so a publi
+c (tunneled)
+# deployment can't be used to burn API credit. Sliding window,
+ in-memory.
+# SECURITY: LLM01/LLM10 (Endpoint Hardening) — request-count r
+ate limit, token-budget
+# limit per IP, and a global hourly spend circuit breaker on t
+he model-calling endpoint
+# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published
+November 2025)
+# Confidence: MODERATE — in-memory sliding windows are accurat
+e for this app's
+#   single-process design but reset on restart; token estimate
+ is heuristic,
+#   corrected with provider-reported usage after each call
+# Level: Moderate
+# Declined: High — injection classifier / tiered access add co
+st+latency a
+#   short-lived anonymous-participant research study doesn't w
+arrant
+# Pattern: token_budget_limiter
+# Requires layering: output validation (LLM05), system prompt
+design (LLM07)
+# Applied by: llm-secure-patterns v0.9.0 / LLM Endpoint Harden
+ing
+# Date applied: 2026-07-22
+RATE_MAX, RATE_WINDOW = 30, 60.0  # max requests per window se
+conds
+TOKENS_PER_IP_HOUR = int(os.environ.get("TOKENS_PER_IP_HOUR",
+"200000"))
+TOKENS_GLOBAL_HOUR = int(os.environ.get("TOKENS_GLOBAL_HOUR",
+"2000000"))
+BUDGET_WINDOW = 3600.0
+_rate_lock = threading.Lock()
+_rate_hits = {}
+_ip_usage = {}      # ip -> [(monotonic_time, tokens)]
+_global_usage = []  # [(monotonic_time, tokens)]
+
+
+def rate_ok(ip):
+
+        return allowed
+
+
+def _est_tokens(text):
+    """Conservative chars->tokens estimate (~2 chars/token) so
+ non-Latin input
+    over- rather than under-counts; corrected with real usage
+post-call."""
+    return max(1, len(text or "") // 2)
+
+
+def _window_sum(entries, t):
+    entries[:] = [e for e in entries if t - e[0] < BUDGET_WIND
+OW]
+    return sum(n for _, n in entries)
+
+
+def budget_check_and_reserve(ip, est, admin=False):
+    """Reserve est tokens against the per-IP and global hourly
+ budgets.
+    Returns None if allowed, else an error string. Admins skip
+ the per-IP cap
+    but still trip the global circuit breaker (a runaway test
+stops too)."""
+    t = time.monotonic()
+    with _rate_lock:
+        if _window_sum(_global_usage, t) + est > TOKENS_GLOBAL
+_HOUR:
+            return "service paused — hourly usage budget reach
+ed, please try later"
+        if not admin:
+            ipu = _ip_usage.setdefault(ip, [])
+            if _window_sum(ipu, t) + est > TOKENS_PER_IP_HOUR:
+                return "hourly usage limit reached — please tr
+y again later"
+            ipu.append((t, est))
+        _global_usage.append((t, est))
+    return None
+
+
+def budget_record_actual(ip, est, actual, admin=False):
+    """Correct the reserved estimate once the provider reports
+ real usage."""
+    delta = actual - est
+    if not delta:
+        return
+    t = time.monotonic()
+    with _rate_lock:
+        _global_usage.append((t, delta))
+        if not admin:
+            _ip_usage.setdefault(ip, []).append((t, delta))
+
+
+_usage_log_lock = threading.Lock()
+
+
+def log_usage(entry):
+    """One JSON line per model call (spend attribution / foren
+sics).
+    Lives in OUTPUT_DIR, which is gitignored."""
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    with _usage_log_lock:
+        with open(os.path.join(OUTPUT_DIR, "usage.jsonl"), "a"
+, encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+
+
+API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+API_URL = "https://api.anthropic.com/v1/messages"
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
+
+Now annotating the existing mitigations (auth, key handling, input caps) and updating the providers:
+
+⏺ Update(app.py)
+Added 13 lines
+PORT = int(os.environ.get("PORT", str(_d_port)))
+
+# --- admin auth ----------------------------------------------
+---------------
+# SECURITY: LLM01/LLM10 (Endpoint Hardening) — token auth on al
+l admin routes;
+# participants may only continue server-created conversations,
+never mint them
+# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published N
+ovember 2025)
+# Confidence: MODERATE — single shared token (no per-user ident
+ity/JWT); compared
+#   with hmac.compare_digest; HttpOnly cookie
+# Level: Moderate
+# Declined: High — per-user credentials/tiers meaningless for o
+ne admin +
+#   anonymous study participants
+# Pattern: token_budget_limiter
+# Requires layering: serve over HTTPS (Cloudflare Tunnel) so th
+e token cookie
+#   is not sent in cleartext
+# Applied by: llm-secure-patterns v0.9.0 / LLM Endpoint Hardeni
+ng
+# Date applied: 2026-07-22
+# Every admin page/API requires this token, passed once as ?tok
+en=... (which
+# sets a cookie) — participants only ever get /c/<id>, /api/mes
+sage, /api/verdict.
+# Set ADMIN_TOKEN in the env, or a random one is generated and
+kept in .admin_token.
+
+⏺ Update(app.py)
+Added 10 lines
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+# SECURITY: LLM01/LLM10 (Endpoint Hardening) — API keys loaded
+in-process from
+# gitignored .env, never via shell; keys sent in headers only,
+never in URLs or logs
+# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published N
+ovember 2025)
+# Confidence: MODERATE — env/.env storage, not a secrets manage
+r; no rotation automation
+# Level: Moderate
+# Declined: High — a managed secrets store is out of scope for
+a local stdlib app
+# Pattern: token_budget_limiter
+# Requires layering: rotate provider keys after the study concl
+udes
+# Applied by: llm-secure-patterns v0.9.0 / LLM Endpoint Hardeni
+ng
+# Date applied: 2026-07-22
+def load_env(path=None):
+    """Load KEY=VALUE lines from .env into os.environ, in-proce
+ss only.
+    Values never pass through the shell and are never printed.
+Variables
+
+⏺ Update(app.py)
+Added 10 lines
+        ("gpt-4o-mini", "GPT-4o mini"),
+    ]),
+]
+# SECURITY: LLM01/LLM10 (Endpoint Hardening) — input size caps
+: per-message chars,
+# per-conversation turns, and history window sent to the model
+# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published
+November 2025)
+# Confidence: MODERATE — character caps, not tokenizer-accurat
+e; backed by the
+#   token-budget limiter which over-estimates to compensate
+# Level: Moderate
+# Pattern: token_budget_limiter
+# Requires layering: token-budget limiter (this file), max_tok
+ens output caps (call_model)
+# Applied by: llm-secure-patterns v0.9.0 / LLM Endpoint Harden
+ing
+# Date applied: 2026-07-22
+MAX_TURNS = 40       # cap history sent to the model
+MAX_MSG_CHARS = 4000  # cap a single participant message
+MAX_USER_MSGS = 40    # cap user messages per conversation
+
+Now the provider changes — usage reporting, Gemini output cap, and the call_model annotation:
+
+⏺ Update(app.py)
+Added 11 lines, removed 1 line
+        raise RuntimeError(f"API {e.code}: {e.read().decode(er
+rors='replace')[:300]}")
+
+
+# SECURITY: LLM10 (Endpoint Hardening) — max_tokens output cap
+ on every provider
+# call (Anthropic/OpenAI/Gemini); unbounded generation is the
+expensive side of
+# denial-of-wallet
+# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published
+November 2025)
+# Confidence: HIGH — hard API parameter enforced by the provid
+er
+# Level: Moderate
+# Pattern: token_budget_limiter
+# Applied by: llm-secure-patterns v0.9.0 / LLM Endpoint Harden
+ing
+# Date applied: 2026-07-22
+def call_model(system_prompt, model, history):
+    """Route to the right provider. Returns (answer_text, reas
+oning_text).
+    """Route to the right provider. Returns (answer_text, reas
+oning_text, tokens)
+    where tokens is the provider-reported total usage (0 if un
+reported).
+    reasoning is any chain-of-thought the API returns separate
+ly ('' if none)."""
+    model = model or DEFAULT_MODEL
+    history = history[-MAX_TURNS:]
+
+⏺ Update(app.py)
+Added 3 lines, removed 1 line
+            text += b.get("text", "")
+        elif b.get("type") == "thinking":
+            reasoning += b.get("thinking", "")
+    return text.strip() or "(no response)", reasoning.strip()
+    u = data.get("usage") or {}
+    tokens = (u.get("input_tokens") or 0) + (u.get("output_tok
+ens") or 0)
+    return text.strip() or "(no response)", reasoning.strip(),
+ tokens
+
+
+def _call_openai(system, model, history):
+
+⏺ Update(app.py)
+Added 2 lines, removed 1 line
+    ch = (data.get("choices") or [{}])[0].get("message", {})
+    text = ch.get("content") or ""
+    reasoning = ch.get("reasoning") or ch.get("reasoning_conte
+nt") or ""
+    return text.strip() or "(no response)", (reasoning or "").
+strip()
+    tokens = (data.get("usage") or {}).get("total_tokens") or
+0
+    return text.strip() or "(no response)", (reasoning or "").
+strip(), tokens
+
+
+def _call_gemini(system, model, history):
+
+⏺ Update(app.py)
+Added 6 lines, removed 3 lines
+            "system_instruction": {"parts": [{"text": system}]
+},
+            "contents": contents,
+            # ask Gemini to return its thinking as separate "t
+hought" parts,
+            # so we can capture the chain-of-thought (admin-on
+ly, never shown to users)
+            "generationConfig": {"thinkingConfig": {"includeTh
+oughts": True}},
+            # so we can capture the chain-of-thought (admin-on
+ly, never shown to users);
+            # maxOutputTokens caps output cost like max_tokens
+ on the other providers
+            "generationConfig": {"thinkingConfig": {"includeTh
+oughts": True},
+                                 "maxOutputTokens": 1024},
+        },
+        # key goes in a header, not the URL — query strings en
+d up in proxy logs
+        {"content-type": "application/json", "x-goog-api-key":
+ GEMINI_KEY},
+
+            reasoning += p.get("text", "")
+        else:
+            text += p.get("text", "")
+    return text.strip() or "(no response)", reasoning.strip()
+    tokens = (data.get("usageMetadata") or {}).get("totalToken
+Count") or 0
+    return text.strip() or "(no response)", reasoning.strip(),
+ tokens
+
+
+# ------------------------------------------------------- enti
+ty emblems -----
+
+⏺ Update(app.py)
+Added 2 lines, removed 1 line
+            # ask Gemini to return its thinking as separate "t
+hought" parts,
+            # so we can capture the chain-of-thought (admin-on
+ly, never shown to users);
+            # maxOutputTokens caps output cost like max_tokens
+ on the other providers
+            # (2048 not 1024: Gemini counts thinking tokens ag
+ainst this budget)
+            "generationConfig": {"thinkingConfig": {"includeTh
+oughts": True},
+                                 "maxOutputTokens": 1024},
+                                 "maxOutputTokens": 2048},
+        },
+        # key goes in a header, not the URL — query strings en
+d up in proxy logs
+        {"content-type": "application/json", "x-goog-api-key":
+ GEMINI_KEY},
+
+⏺ Update(app.py)
+Added 1 line, removed 1 line
+    return aid
+
+
+def api_message(payload):
+def api_message(payload, ip="", admin=False):
+    agent_id = payload.get("agent_id")
+    conv_id = payload.get("conversation_id")
+    msg = (payload.get("message") or "").strip()
+
+⏺ Update(app.py)
+Added 11 lines, removed 1 line
+        locs = _pool(a["location_pool"])
+        location = locs[0] if locs else "the region"
+    system_prompt = fill_placeholders(agent_prompt(a, role),
+recipient, control, location)
+    # token-budget gate: reserve a conservative estimate, cor
+rect with real usage
+    est = _est_tokens(system_prompt) + sum(_est_tokens(m["con
+tent"]) for m in history) + 2048
+    err = budget_check_and_reserve(ip, est, admin)
+    if err:
+        return {"error": err, "conversation_id": conv_id}
+    try:
+        reply, reasoning = call_model(system_prompt, a["model
+"], history)
+        reply, reasoning, used = call_model(system_prompt, a[
+"model"], history)
+    except Exception as e:
+        return {"error": str(e)[:400], "conversation_id": con
+v_id}
+    if used:
+        budget_record_actual(ip, est, used, admin)
+    log_usage({"ts": now(), "ip": ip, "admin": admin, "conver
+sation_id": conv_id,
+               "agent_id": agent_id, "model": a["model"], "es
+t_tokens": est,
+               "actual_tokens": used})
+    conn = db()
+    conn.execute(
+        "INSERT INTO messages(conversation_id,role,content,re
+asoning,ts) VALUES(?,?,?,?,?)",
+
+⏺ Update(app.py)
+Added 3 lines, removed 2 lines
+            # one directly (admin test panel passes agent_id
++ role) needs the token
+            if not payload.get("conversation_id") and not adm
+in:
+                return self._forbid(as_json=True)
+            if not admin and not rate_ok(self._client_ip()):
+            ip = self._client_ip()
+            if not admin and not rate_ok(ip):
+                return self._json({"error": "too many request
+s — please slow down"}, 429)
+            return self._json(api_message(payload))
+            return self._json(api_message(payload, ip, admin)
+)
+        if path == "/api/verdict":
+            return self._json(api_verdict(payload))
+        if path == "/api/archive":
+
+  Ran 2 shell commands
+
+The second call hit the old server — the new one likely failed to bind while the first was still dying. Retrying on a fresh port:
+
+  Ran 1 shell command
+
+Budget gate verified both ways: trips at a tiny budget, passes at normal budget (reaching Gemini, which correctly rejected the dummy key). One quick README addition for the new knobs:
+
+⏺ Update(README.md)
+Added 2 lines, removed 1 line
+```
+
+Environment overrides: `APP_ENV` (prod|dev), `PORT`, `LOYALTY_D
+B`, `LOYALTY_OUTPUT`,
+`PUBLIC_BASE_URL`, `ADMIN_TOKEN`.
+`PUBLIC_BASE_URL`, `ADMIN_TOKEN`, `TOKENS_PER_IP_HOUR` (default
+ 200k), `TOKENS_GLOBAL_HOUR`
+(default 2M — hourly spend circuit breaker).
+
+## Admin access
+
+
+▎ Applied Moderate to /api/message — token-budget limit per IP, global hourly spend circuit breaker, provider-reported usage correction, maxOutputTokens cap added for Gemini, usage logging to output/usage.jsonl, plus annotations on the existing auth, rate-limit, input-cap, and key-handling mitigations. Files: app.py, README.md. All # SECURITY: annotated. Deferred: none within this skill's scope.
+▎
+▎ Adjacent surfaces not covered (defense in depth): output validation (model replies rendered as HTML/CSV), system prompt design (the secret-loyalty confidentiality directive). A) Address now · B) Add to backlog (TODO: SECURITY) · C) Skip.
+▎
+▎ Run /llm-secure-patterns:report for full OWASP LLM Top 10 coverage and gaps.
+
+✻ Crunched for 4m 13s

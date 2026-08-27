@@ -3,19 +3,31 @@ name: agent-action-surface
 description: Use when designing or wiring up tool_use, function_calling, MCP servers, multi-agent chains, or calling multiple LLM providers (e.g., Gemini for vision plus Claude for reasoning) in the same pipeline — fire this skill during architecture/planning discussions, not just implementation
 metadata:
   author: WildBlue.AI
-  version: 0.9.0
+  version: 1.0.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
 > **Note:** This skill provides development guidance, not security guarantees. Patterns mitigate risk; they do not eliminate it. See [SCOPE.md](../../SCOPE.md) for limitations and the threats this plugin is known not to cover.
 
 **When summarizing actions taken using this skill, always refer to it as "Agent Action Surface Control" — never as "Skill 1" or any generic label.**
+**PRESENTATION CONTRACT — brief by default for the ENTIRE interaction, not just the tier list.**
+**Goal: every message this skill emits fits on ONE screen — about 15 lines of text or fewer.** If a message runs longer than that, you have added chatter; cut it back to the block itself.
+
+- **No preamble.** Do not explain what the skill does, restate the threat, or paraphrase the "What this skill does" / OWASP sections into chat. Lead with the block for the current step. (If the developer asks "why," then explain.)
+- **One step per message.** Emit the intro block; stop; wait for A/B. After A, emit the brief picker block; stop; wait for the pick. Never merge the two; never preview the tiers in the intro message.
+- **Question tools obey the same pacing.** If presenting a decision through a structured question tool (e.g. AskUserQuestion): exactly one question per tool call, in the same order — intro A/B first, tier picker only after A is chosen. Never batch the intro and the tier picker into one call. A tier-picker question must keep the D) help-me-decide option and say in its question text that "details" / "verbose" expand the tier descriptions.
+- **No closing restatement.** After a block ends in its question/action line, stop. Do not re-list or re-ask the options.
+- The only thing that expands this is "details" or the `llm-secure-patterns: verbose` preference.
+- **The post-build completion obeys this too — and it is the turn's FINAL message.** When the work is done, emit the single completion block defined in "Before completing this skill" — a short comma list of controls (no parentheticals), files, a one-line gap disposition, the adjacent-surface A/B/C inline, then the report line. One block, ≤ one screen. Emit it as the last message of the turn and add nothing after it: no overall recap, no run instructions, no architecture restatement. The block itself satisfies any end-of-turn summary requirement.
+
 **Before presenting any security options, always start with this intro:**
 
 > **llm-secure-patterns** has detected code that would benefit from LLM security guidance (Agent Action Surface Control, OWASP LLM Top 10 2025).
 >
 > - **A) Apply security now** — I'll walk you through security options before writing code
 > - **B) Build first, secure later** — I'll build the code now and add a `TODO: SECURITY` reminder. Run `/llm-secure-patterns:report` when you're ready to add security layers.
+
+**Emit only this intro — no threat explanation, no tier preview, nothing else — then stop and wait for A or B.**
 
 If the developer picks A, proceed with the tiered options below. If they pick B, build the code without security patterns but add a `# TODO: SECURITY — run llm-secure-patterns to apply LLM security patterns` comment at the top of the relevant file(s).
 
@@ -35,7 +47,22 @@ This skill provides guidance and templates that reduce excessive agency and cros
 
 ## Tiered mitigation options
 
-Present these three levels to the user with tradeoffs before implementing. Each level includes everything from the previous level. Let the user choose — do not silently pick a level.
+**Present these three levels as a BRIEF picker by default — one line per tier (level name + added cost + the single most important thing it does NOT catch), then an action line. Do NOT read out the full descriptions below by default.** The detailed subsections that follow are reference detail: use them to fill the picker's one-liners and to answer "details" requests, not as a script to recite. See "IMPORTANT — Presentation rules" below for the exact picker format and the verbose opt-in. Each level includes everything from the previous level. Let the user choose — do not silently pick a level.
+
+**BRIEF PICKER — by default, emit exactly this block. Do NOT expand the per-level subsections below unless the developer asks for "details" or has set the verbose preference (see "IMPORTANT — Presentation rules"):**
+
+```
+Agent Action Surface Control — OWASP LLM06/LLM01. Pick a level (each builds on the last):
+
+A) Low — minimal added cost. Least-privilege tool access + human-in-the-loop for destructive actions.
+   Injection can still invoke any tool the model is granted.
+B) Moderate (recommended) — adds wrapping + system-prompt tokens (no LLM call). + stage isolation + credential separation + cross-model UNTRUSTED wrapping + per-call argument validation + MCP trust controls.
+   Semantic injection surviving stage boundaries remains.
+C) High — +1 call per stage boundary (estimated) + container overhead. + sandboxed per-stage environments + inter-stage output validation + audit logging + rollback / confirmation gates.
+   Orchestrator or audit-system compromise, and crafted boundary-evading inputs, remain.
+
+Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "verbose" (all tiers) for the full breakdown.
+```
 
 ---
 
@@ -99,7 +126,7 @@ Everything in Level A, plus:
 - **Effectiveness:** defense-in-depth isolation that reduces but does not eliminate cross-model injection risk. Cross-model injection is an evolving attack surface with limited published research
 - **Evidence:** ServiceNow 2025 cross-agent incident, [Palo Alto Unit 42: MCP sampling attack vectors](https://unit42.paloaltonetworks.com/model-context-protocol-attack-vectors/), [Invariant Labs: MCP Tool Poisoning Attacks (April 2025)](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks), Lakera MCP injection research
 - **Known bypasses:** Semantic injection that survives stage boundaries, novel cross-model attack patterns, compromise of the pipeline orchestrator itself
-- **Inherent limitations (will not be fixed — see SCOPE.md):** Delimiter wrapping (`UNTRUSTED_MODEL_OUTPUT`, `UNTRUSTED_TOOL_RESULT`) is a behavioral hint, not an architectural boundary — it is demonstrably bypassable under adversarial conditions. The `SAFE_READ_PREFIXES` allowlist (`get`/`list`/`read`/`fetch`/`search`/`describe`) is a **weak smell test, not a reliable control.** v0.9.0 adds a `DESTRUCTIVE_VERB_SUBSTRINGS` substring scan that flags obvious compound names (`read_and_exfiltrate`, `fetch_and_delete`, `get_and_email`), but verb-anywhere matching is still pattern-only — a tool named `record_lookup` could exfiltrate data on every call without tripping anything. A destructive tool deliberately named with a benign prefix and no destructive verb in the name will pass; a read-only tool with an unconventional prefix will be flagged until renamed. **The durable control is an explicit per-stage allowlist of the specific tools that have been reviewed, not naming-convention heuristics.** Tool semantics are not inferred. The `validate_pipeline` linter emits warnings but does not enforce or block execution. Indirect prompt injection via tool results is a cross-skill concern requiring layered mitigation across all five skills.
+- **Inherent limitations (will not be fixed — see SCOPE.md):** Delimiter wrapping (`UNTRUSTED_MODEL_OUTPUT`, `UNTRUSTED_TOOL_RESULT`) is a behavioral hint, not an architectural boundary — it is demonstrably bypassable under adversarial conditions. The `SAFE_READ_PREFIXES` allowlist (`get`/`list`/`read`/`fetch`/`search`/`describe`) is a **weak smell test, not a reliable control.** This skill's `DESTRUCTIVE_VERB_SUBSTRINGS` substring scan that flags obvious compound names (`read_and_exfiltrate`, `fetch_and_delete`, `get_and_email`), but verb-anywhere matching is still pattern-only — a tool named `record_lookup` could exfiltrate data on every call without tripping anything. A destructive tool deliberately named with a benign prefix and no destructive verb in the name will pass; a read-only tool with an unconventional prefix will be flagged until renamed. **The durable control is an explicit per-stage allowlist of the specific tools that have been reviewed, not naming-convention heuristics.** Tool semantics are not inferred. The `validate_pipeline` linter emits warnings but does not enforce or block execution. Indirect prompt injection via tool results is a cross-skill concern requiring layered mitigation across all five skills.
 - **Requires layering with:** Input sanitization (Skill 1), output validation at each stage boundary (Output Validation and Sanitization), system prompt design per agent (Skill 4)
 
 **Tradeoff:** Moderate complexity, defense-in-depth approach. Mitigates cross-model injection and privilege escalation through stage separation; does not address sophisticated semantic injection that survives boundaries.
@@ -163,19 +190,30 @@ Everything in Level B (Moderate), plus:
 ---
 
 **IMPORTANT — Presentation rules:**
+
 1. Present options as plain text, NOT as tables. Tables are hard to read in a terminal.
-2. For Level C only, MUST include "Cost:" and "Latency:" lines — these are required. Level A has minimal additional cost and latency. Level B adds wrapping logic and system prompt tokens., so do not show these lines for A and B.
-3. When multiple skills trigger at once, present each skill's A/B/C/D choice ONE AT A TIME. Wait for the developer's answer before presenting the next skill's options. Do not batch them.
-4. For the FIRST skill in a session, show full descriptions. For SUBSEQUENT skills, use a condensed format: one line per level with description and cost, then the A/B/C/D choice. The developer already understands the pattern.
 
-**After presenting the three levels, ask the developer:**
+2. **Default to a BRIEF picker — do not dump all three full tier descriptions.** This is the default for every skill, every time, including the first skill in a session. Format the picker as: a one-line header naming the skill and its OWASP IDs, then exactly ONE line per tier, then a single action line. Each tier line carries three things and nothing more — (a) the letter + level name, with the recommended tier marked; (b) the tier's added cost (see rule 3); (c) the single most important thing that tier still does NOT catch (the "misses" clause). The "misses" clause is REQUIRED on every tier and must never be dropped, however terse the picker — it is what keeps the brief presentation honest. Hold all supporting detail (full control list, Effectiveness, Evidence, Known bypasses, Requires-layering, Inherent limitations, and the full Cost/Latency breakdown) for "details" (rule 4). Shape to follow, filled with this skill's real tiers:
 
-> "Which level of security would you like to apply?
->
-> - A) Low
-> - B) Moderate (recommended)
-> - C) High
-> - D) I'm not sure — help me decide"
+```
+<Skill name> — OWASP <IDs>. Pick a level (each builds on the last):
+
+A) Low — <added cost>. <what it adds, one line>. Misses <key gap>.
+B) Moderate (recommended) — <added cost>. <what it adds>. <key gap remains>.
+C) High — <added cost>. <what it adds>. <key gap remains>.
+
+Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "verbose" (all tiers) for the full breakdown.
+```
+
+3. **Added-cost column.** Each tier line states the added cost of that tier's security controls — the cost of turning this level on — NOT the base cost of the LLM call itself. For a tier that adds no LLM call and no material token overhead, write "no added cost." For a tier that adds an LLM call, summarize briefly (e.g. "+1 classifier call/req (estimated)"); for a tier that only adds tokens or wrapping, say so briefly (Level B here adds wrapping logic and system-prompt tokens, not an LLM call). Draw the specifics from the "Cost:" / "Latency:" lines in the tier sections above. Any figure shown in the brief line MUST carry "(estimated)"; the full figure and the pricing caveat ("Your actual cost depends on content size, provider pricing, etc.") belong in details, not in the brief line.
+
+4. **Details on demand — per tier, never a wall.** If the developer asks for "details," expand only the recommended tier's full breakdown and note that naming a tier ("details A", "details C") expands the others. If they name a tier, expand just that one. Show all three full breakdowns at once only if the developer explicitly asks for all of them, or has the verbose preference set (rule 6). When you expand a tier that has "Cost:" / "Latency:" lines (Level C), those lines are REQUIRED in the detail view.
+
+5. When multiple skills trigger at once, present each skill's brief picker ONE AT A TIME. Wait for the developer's answer before presenting the next skill's options. Do not batch them.
+
+6. **Verbose preference (opt-in).** The default is brief (rules 2–4). If the developer has set a verbose preference — a line such as `llm-secure-patterns: verbose` in their project or user instructions (for example in CLAUDE.md), or a request earlier in this session to always show full detail — then skip the brief picker and show the full detail for all three tiers instead. Explicit user preference always beats this default. Typing `verbose` at the picker is the one-time form — render the full detail for all three tiers now, without changing any persistent setting (it is `details` applied to every tier at once).
+
+**The brief picker's action line (rule 2) already asks which level to apply — do not add a separate "which level?" prompt, and do not append any sentence restating or re-asking the options after the picker. The action line is the last thing in the message.**
 
 **If the developer picks D**, ask these diagnostic questions one at a time. Preface with: "Pick one per question. If multiple apply, pick the highest-risk answer — it's safer to over-protect than under-protect."
 
@@ -220,7 +258,7 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 - **OWASP ID:** `LLM06 (Excessive Agency)`
 - **Pattern:** `isolated_pipeline`
-- **Applied by:** `llm-secure-patterns v0.9.0 / Agent Action Surface Control`
+- **Applied by:** `llm-secure-patterns v1.0.0 / Agent Action Surface Control`
 
 ## What this skill does NOT cover (additional security layers suggested)
 
@@ -231,13 +269,11 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 **Additional Security Gaps Identified**
 
-The following areas are not covered by this skill but represent additional attack surface. The OWASP LLM Top 10 recommends defense in depth — layering multiple mitigations. How would you like to proceed?
+Surface this as ONE line — the adjacent surfaces from the list above, then the choice inline. No preamble about attack surface or OWASP:
 
-- **A) Address now** — I'll present security options for each gap so you can choose the right level
-- **B) Add to backlog** — I'll note these as security requirements to address later in the project
-- **C) Skip** — Acknowledged, no action needed right now
+> Adjacent surfaces not covered (defense in depth): <surfaces from the list above>. A) Address now · B) Add to backlog (TODO: SECURITY) · C) Skip.
 
-After the developer chooses, always end with: "Run `/llm-secure-patterns:report` to see your full OWASP LLM Top 10 coverage and remaining gaps — and to catch any LLM surfaces where security skills did not fire during this session."
+After the developer chooses, always end with: "Run `/llm-secure-patterns:report` for full OWASP LLM Top 10 coverage and gaps."
 
 
 ## False solutions warning
@@ -255,15 +291,23 @@ When this skill triggers on existing code that already has agent/tool pipelines:
 3. Flag gaps — for each gap, present the A/B/C/D tier choices and wait for the developer to choose before applying. Do not pick a level automatically.
 4. If no mitigations exist, present the full A/B/C/D tier choices as if building new code — wait for the developer to choose before applying.
 
-After completing the review and applying any changes, always end with: "Run `/llm-secure-patterns:report` to see your full OWASP LLM Top 10 coverage and remaining gaps — and to catch any LLM surfaces where security skills did not fire during this session."
+After completing the review and applying any changes, always end with: "Run `/llm-secure-patterns:report` for full OWASP LLM Top 10 coverage and gaps."
 
 ## Before completing this skill
 
 Treat this as a hard checklist. The skill is not done until all of these items are satisfied:
 
+**Emit the completion as ONE block — ≤ one screen, no control-by-control essay, no parentheticals.** Shape:
+
+> Applied **<tier>** to <surface> — <controls as a short comma list>. Files: <list>. All `# SECURITY:` annotated. Deferred: <one key gap, or "none">.
+>
+> Adjacent surfaces not covered (defense in depth): <surfaces from "What this skill does NOT cover" above>. A) Address now · B) Add to backlog (TODO: SECURITY) · C) Skip.
+>
+> Run `/llm-secure-patterns:report` for full OWASP LLM Top 10 coverage and gaps.
+
 - [ ] **Annotations written.** Every applied mitigation has a `# SECURITY:` / `// SECURITY:` comment in the code (OWASP ID, level, pattern, applied-by, date — see `references/annotation-format.md`).
 - [ ] **Gap disposition stated.** The developer knows which gaps were skipped (option C) or deferred (option B), and what file marker they should look for if deferred.
 - [ ] **Report-mention surfaced.** End the pass with this exact line:
-  > Run `/llm-secure-patterns:report` to see your full OWASP LLM Top 10 coverage and remaining gaps — and to catch any LLM surfaces where security skills did not fire during this session.
+  > Run `/llm-secure-patterns:report` for full OWASP LLM Top 10 coverage and gaps.
 
 The last item is non-optional. It is the safety net for adjacent LLM surfaces (ingestion, output rendering, system prompt design, agent action wiring) where this skill does not fire. Skipping the report-mention strands the developer without the means to discover gaps the model missed.

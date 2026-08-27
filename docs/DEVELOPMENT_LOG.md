@@ -7,7 +7,7 @@ Claude Code plugin teaching secure design patterns for LLM applications, mapped 
 - **Author:** Cheryl Aday on behalf of WildBlue.AI
 - **Build period:** 2026-03-30 to 2026-04-03
 - **Total commits:** 54
-- **Plugin version:** 0.9.0
+- **Plugin version:** 1.0.0
 
 ---
 

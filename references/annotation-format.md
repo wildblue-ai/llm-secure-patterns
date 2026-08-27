@@ -12,7 +12,7 @@ When applying any mitigation pattern from a skill, add a structured comment at t
 # Declined: [stronger option not selected] — [brief reason]
 # Pattern: [template/pattern name]
 # Requires layering: [what else is needed]
-# Applied by: llm-secure-patterns v0.9.0 / [Skill Name]
+# Applied by: llm-secure-patterns v1.0.0 / [Skill Name]
 # Date applied: [YYYY-MM-DD]
 ```
 
@@ -26,7 +26,7 @@ When applying any mitigation pattern from a skill, add a structured comment at t
 // Declined: [stronger option not selected] — [brief reason]
 // Pattern: [template/pattern name]
 // Requires layering: [what else is needed]
-// Applied by: llm-secure-patterns v0.9.0 / [Skill Name]
+// Applied by: llm-secure-patterns v1.0.0 / [Skill Name]
 // Date applied: [YYYY-MM-DD]
 ```
 

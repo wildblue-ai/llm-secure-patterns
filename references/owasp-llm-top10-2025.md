@@ -153,7 +153,7 @@ System prompts often contain business logic, behavioral instructions, safety rul
 RAG (Retrieval-Augmented Generation) pipelines depend on vector databases and embedding models. Attackers can manipulate embeddings to poison retrieval results, inject adversarial documents into the vector store, or exploit access control gaps where users retrieve documents they should not have access to. Embedding inversion attacks can also reconstruct sensitive source text from stored vectors.
 
 **What the plugin covers:**
-Not covered in v0.9.0. Vector and embedding security requires specialized controls at the retrieval layer — access control on vector stores, embedding integrity verification, and retrieval result filtering. This may be addressed in future versions.
+Not covered in v1.0.0. Vector and embedding security requires specialized controls at the retrieval layer — access control on vector stores, embedding integrity verification, and retrieval result filtering. This may be addressed in future versions.
 
 ---
 

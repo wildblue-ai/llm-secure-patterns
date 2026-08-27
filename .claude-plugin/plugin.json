@@ -1,7 +1,7 @@
 {
   "name": "llm-secure-patterns",
   "description": "Secure design patterns for Claude Code LLM applications: external content ingestion, endpoint hardening, output validation, system prompt design, and multi-agent action surface control. Maps to OWASP Top 10 for LLM Applications 2025 (November 2025). Includes /llm-secure-patterns:report to generate audit-ready SECURITY_POSTURE.md and DEVELOPER_RECOMMENDATIONS.md files.",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "author": {
     "name": "WildBlue.AI",
     "email": "hello@wildblue.ai"

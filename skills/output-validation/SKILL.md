@@ -3,19 +3,31 @@ name: output-validation
 description: Use when designing or implementing code where LLM responses are rendered as HTML or markup in a frontend, written to a database, passed to another service, or used to generate emails or documents — fire this skill during architecture/planning discussions, not just implementation. Not for SQL or shell command construction — those require parameterized queries and argument arrays, not string escaping (see the Scope section in SKILL.md)
 metadata:
   author: WildBlue.AI
-  version: 0.9.0
+  version: 1.0.0
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
 > **Note:** This skill provides development guidance, not security guarantees. Patterns mitigate risk; they do not eliminate it. See [SCOPE.md](../../SCOPE.md) for limitations and the threats this plugin is known not to cover.
 
 **When summarizing actions taken using this skill, always refer to it as "Output Validation and Sanitization" — never as "Skill 1" or any generic label.**
+**PRESENTATION CONTRACT — brief by default for the ENTIRE interaction, not just the tier list.**
+**Goal: every message this skill emits fits on ONE screen — about 15 lines of text or fewer.** If a message runs longer than that, you have added chatter; cut it back to the block itself.
+
+- **No preamble.** Do not explain what the skill does, restate the threat, or paraphrase the "What this skill does" / OWASP sections into chat. Lead with the block for the current step. (If the developer asks "why," then explain.)
+- **One step per message.** Emit the intro block; stop; wait for A/B. After A, emit the brief picker block; stop; wait for the pick. Never merge the two; never preview the tiers in the intro message.
+- **Question tools obey the same pacing.** If presenting a decision through a structured question tool (e.g. AskUserQuestion): exactly one question per tool call, in the same order — intro A/B first, tier picker only after A is chosen. Never batch the intro and the tier picker into one call. A tier-picker question must keep the D) help-me-decide option and say in its question text that "details" / "verbose" expand the tier descriptions.
+- **No closing restatement.** After a block ends in its question/action line, stop. Do not re-list or re-ask the options.
+- The only thing that expands this is "details" or the `llm-secure-patterns: verbose` preference.
+- **The post-build completion obeys this too — and it is the turn's FINAL message.** When the work is done, emit the single completion block defined in "Before completing this skill" — a short comma list of controls (no parentheticals), files, a one-line gap disposition, the adjacent-surface A/B/C inline, then the report line. One block, ≤ one screen. Emit it as the last message of the turn and add nothing after it: no overall recap, no run instructions, no architecture restatement. The block itself satisfies any end-of-turn summary requirement.
+
 **Before presenting any security options, always start with this intro:**
 
 > **llm-secure-patterns** has detected code that would benefit from LLM security guidance (Output Validation and Sanitization, OWASP LLM Top 10 2025).
 >
 > - **A) Apply security now** — I'll walk you through security options before writing code
 > - **B) Build first, secure later** — I'll build the code now and add a `TODO: SECURITY` reminder. Run `/llm-secure-patterns:report` when you're ready to add security layers.
+
+**Emit only this intro — no threat explanation, no tier preview, nothing else — then stop and wait for A or B.**
 
 If the developer picks A, proceed with the tiered options below. If they pick B, build the code without security patterns but add a `# TODO: SECURITY — run llm-secure-patterns to apply LLM security patterns` comment at the top of the relevant file(s).
 
@@ -45,7 +57,22 @@ These are not limitations this skill aims to fix — they are the wrong tool for
 
 ## Tiered mitigation options
 
-Present these three levels to the user with tradeoffs before implementing. Each level includes everything from the previous level. Let the user choose — do not silently pick a level.
+**Present these three levels as a BRIEF picker by default — one line per tier (level name + added cost + the single most important thing it does NOT catch), then an action line. Do NOT read out the full descriptions below by default.** The detailed subsections that follow are reference detail: use them to fill the picker's one-liners and to answer "details" requests, not as a script to recite. See "IMPORTANT — Presentation rules" below for the exact picker format and the verbose opt-in. Each level includes everything from the previous level. Let the user choose — do not silently pick a level.
+
+**BRIEF PICKER — by default, emit exactly this block. Do NOT expand the per-level subsections below unless the developer asks for "details" or has set the verbose preference (see "IMPORTANT — Presentation rules"):**
+
+```
+Output Validation and Sanitization — OWASP LLM05/LLM02. Pick a level (each builds on the last):
+
+A) Low — no added cost. JSON schema validation, fail-closed on mismatch, reject unexpected fields.
+   Structure only — not content-level attacks.
+B) Moderate (recommended) — no added cost. + context-aware HTML/URL/Markdown/CSV escaping + PII/credential scan + prompt-fragment scan.
+   Flags known patterns; novel encoding / semantic exfiltration may evade.
+C) High — +1 classifier call/req (estimated). + CSP headers + output classifier + sandboxed rendering + review of action-triggering output.
+   No single layer is sufficient; classifiers are evadable.
+
+Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "verbose" (all tiers) for the full breakdown.
+```
 
 ---
 
@@ -58,7 +85,7 @@ Present these three levels to the user with tradeoffs before implementing. Each 
 - **Effectiveness:** Reduces risk by rejecting responses that don't match the expected schema — flags structural problems only, not content-level attacks. Only active when a schema is explicitly provided; unstructured prose responses are not validated. When `validate_llm_output` is called without a schema, it now emits a `schema_validation_skipped` warning finding so callers can detect the omission instead of silently passing.
 - **Tradeoff:** Flags structural problems only, not content-level attacks
 
-**Depth and strictness caveat.** The bundled `validate_json_schema()` is a Level A starter: it checks top-level required keys, top-level type hints, and (as of v0.9.0) **rejects unexpected top-level fields by default**. So payloads like `{"expected": "foo", "__proto__": {"admin": true}}` or `{"expected": "foo", "extra_data": {...}}` are rejected with `Unexpected top-level field: '__proto__'` errors — this mitigates prototype-pollution / class-pollution attacks where downstream code dereferences attacker-controlled keys. The starter does **not** validate nested structures. For production, use the [`jsonschema`](https://pypi.org/project/jsonschema/) library (Python) or [Zod](https://zod.dev) (TypeScript) and ensure unknown keys are rejected at every nested level: `"additionalProperties": false` on every object in your JSON schema, or `z.object({...}).strict()` on every Zod object schema (NOT `.passthrough()` — that re-opens the pollution gap). Layer both: structural rejection at the boundary, content-level scans from Level B before the value is rendered or stored.
+**Depth and strictness caveat.** The bundled `validate_json_schema()` is a Level A starter: it checks top-level required keys, top-level type hints, and (as of v1.0.0) **rejects unexpected top-level fields by default**. So payloads like `{"expected": "foo", "__proto__": {"admin": true}}` or `{"expected": "foo", "extra_data": {...}}` are rejected with `Unexpected top-level field: '__proto__'` errors — this mitigates prototype-pollution / class-pollution attacks where downstream code dereferences attacker-controlled keys. The starter does **not** validate nested structures. For production, use the [`jsonschema`](https://pypi.org/project/jsonschema/) library (Python) or [Zod](https://zod.dev) (TypeScript) and ensure unknown keys are rejected at every nested level: `"additionalProperties": false` on every object in your JSON schema, or `z.object({...}).strict()` on every Zod object schema (NOT `.passthrough()` — that re-opens the pollution gap). Layer both: structural rejection at the boundary, content-level scans from Level B before the value is rendered or stored.
 
 Python example — **Level A starter, top-level only**:
 ```python
@@ -232,19 +259,30 @@ Everything in Level B (Moderate), plus:
 ---
 
 **IMPORTANT — Presentation rules:**
+
 1. Present options as plain text, NOT as tables. Tables are hard to read in a terminal.
-2. For Level C only, MUST include "Cost:" and "Latency:" lines — these are required. Levels A and B have zero additional cost and latency, so do not show these lines for A and B.
-3. When multiple skills trigger at once, present each skill's A/B/C/D choice ONE AT A TIME. Wait for the developer's answer before presenting the next skill's options. Do not batch them.
-4. For the FIRST skill in a session, show full descriptions. For SUBSEQUENT skills, use a condensed format: one line per level with description and cost, then the A/B/C/D choice. The developer already understands the pattern.
 
-**After presenting the three levels, ask the developer:**
+2. **Default to a BRIEF picker — do not dump all three full tier descriptions.** This is the default for every skill, every time, including the first skill in a session. Format the picker as: a one-line header naming the skill and its OWASP IDs, then exactly ONE line per tier, then a single action line. Each tier line carries three things and nothing more — (a) the letter + level name, with the recommended tier marked; (b) the tier's added cost (see rule 3); (c) the single most important thing that tier still does NOT catch (the "misses" clause). The "misses" clause is REQUIRED on every tier and must never be dropped, however terse the picker — it is what keeps the brief presentation honest. Hold all supporting detail (full control list, Effectiveness, Evidence, Known bypasses, Requires-layering, Inherent limitations, and the full Cost/Latency breakdown) for "details" (rule 4). Shape to follow, filled with this skill's real tiers:
 
-> "Which level of security would you like to apply?
->
-> - A) Low
-> - B) Moderate (recommended)
-> - C) High
-> - D) I'm not sure — help me decide"
+```
+<Skill name> — OWASP <IDs>. Pick a level (each builds on the last):
+
+A) Low — <added cost>. <what it adds, one line>. Misses <key gap>.
+B) Moderate (recommended) — <added cost>. <what it adds>. <key gap remains>.
+C) High — <added cost>. <what it adds>. <key gap remains>.
+
+Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "verbose" (all tiers) for the full breakdown.
+```
+
+3. **Added-cost column.** Each tier line states the added cost of that tier's security controls — the cost of turning this level on — NOT the base cost of the LLM call itself. For a tier that adds no LLM call and no material token overhead, write "no added cost." For a tier that adds an LLM call, summarize briefly (e.g. "+1 classifier call/req (estimated)"); for a tier that only adds tokens or wrapping, say so briefly. Draw the specifics from the "Cost:" / "Latency:" lines in the tier sections above. Any figure shown in the brief line MUST carry "(estimated)"; the full figure and the pricing caveat ("Your actual cost depends on content size, provider pricing, etc.") belong in details, not in the brief line.
+
+4. **Details on demand — per tier, never a wall.** If the developer asks for "details," expand only the recommended tier's full breakdown and note that naming a tier ("details A", "details C") expands the others. If they name a tier, expand just that one. Show all three full breakdowns at once only if the developer explicitly asks for all of them, or has the verbose preference set (rule 6). When you expand a tier that has "Cost:" / "Latency:" lines (Level C), those lines are REQUIRED in the detail view.
+
+5. When multiple skills trigger at once, present each skill's brief picker ONE AT A TIME. Wait for the developer's answer before presenting the next skill's options. Do not batch them.
+
+6. **Verbose preference (opt-in).** The default is brief (rules 2–4). If the developer has set a verbose preference — a line such as `llm-secure-patterns: verbose` in their project or user instructions (for example in CLAUDE.md), or a request earlier in this session to always show full detail — then skip the brief picker and show the full detail for all three tiers instead. Explicit user preference always beats this default. Typing `verbose` at the picker is the one-time form — render the full detail for all three tiers now, without changing any persistent setting (it is `details` applied to every tier at once).
+
+**The brief picker's action line (rule 2) already asks which level to apply — do not add a separate "which level?" prompt, and do not append any sentence restating or re-asking the options after the picker. The action line is the last thing in the message.**
 
 **If the developer picks D**, ask these diagnostic questions one at a time. Preface with: "Pick one per question. If multiple apply, pick the highest-risk answer — it's safer to over-protect than under-protect."
 
@@ -271,7 +309,7 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 - **OWASP ID:** `LLM05 (Improper Output Handling)`
 - **Pattern:** `output_schema_validator`
-- **Applied by:** `llm-secure-patterns v0.9.0 / Output Validation and Sanitization`
+- **Applied by:** `llm-secure-patterns v1.0.0 / Output Validation and Sanitization`
 
 ## What this skill does NOT cover (additional security layers suggested)
 
@@ -282,13 +320,11 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 **Additional Security Gaps Identified**
 
-The following areas are not covered by this skill but represent additional attack surface. The OWASP LLM Top 10 recommends defense in depth — layering multiple mitigations. How would you like to proceed?
+Surface this as ONE line — the adjacent surfaces from the list above, then the choice inline. No preamble about attack surface or OWASP:
 
-- **A) Address now** — I'll present security options for each gap so you can choose the right level
-- **B) Add to backlog** — I'll note these as security requirements to address later in the project
-- **C) Skip** — Acknowledged, no action needed right now
+> Adjacent surfaces not covered (defense in depth): <surfaces from the list above>. A) Address now · B) Add to backlog (TODO: SECURITY) · C) Skip.
 
-After the developer chooses, always end with: "Run `/llm-secure-patterns:report` to see your full OWASP LLM Top 10 coverage and remaining gaps — and to catch any LLM surfaces where security skills did not fire during this session."
+After the developer chooses, always end with: "Run `/llm-secure-patterns:report` for full OWASP LLM Top 10 coverage and gaps."
 
 
 ## False solutions warning
@@ -305,15 +341,23 @@ When this skill triggers on existing code that already handles LLM output:
 3. Flag gaps — for each gap, present the A/B/C/D tier choices and wait for the developer to choose before applying. Do not pick a level automatically.
 4. If no mitigations exist, present the full A/B/C/D tier choices as if building new code — wait for the developer to choose before applying.
 
-After completing the review and applying any changes, always end with: "Run `/llm-secure-patterns:report` to see your full OWASP LLM Top 10 coverage and remaining gaps — and to catch any LLM surfaces where security skills did not fire during this session."
+After completing the review and applying any changes, always end with: "Run `/llm-secure-patterns:report` for full OWASP LLM Top 10 coverage and gaps."
 
 ## Before completing this skill
 
 Treat this as a hard checklist. The skill is not done until all of these items are satisfied:
 
+**Emit the completion as ONE block — ≤ one screen, no control-by-control essay, no parentheticals.** Shape:
+
+> Applied **<tier>** to <surface> — <controls as a short comma list>. Files: <list>. All `# SECURITY:` annotated. Deferred: <one key gap, or "none">.
+>
+> Adjacent surfaces not covered (defense in depth): <surfaces from "What this skill does NOT cover" above>. A) Address now · B) Add to backlog (TODO: SECURITY) · C) Skip.
+>
+> Run `/llm-secure-patterns:report` for full OWASP LLM Top 10 coverage and gaps.
+
 - [ ] **Annotations written.** Every applied mitigation has a `# SECURITY:` / `// SECURITY:` comment in the code (OWASP ID, level, pattern, applied-by, date — see `references/annotation-format.md`).
 - [ ] **Gap disposition stated.** The developer knows which gaps were skipped (option C) or deferred (option B), and what file marker they should look for if deferred.
 - [ ] **Report-mention surfaced.** End the pass with this exact line:
-  > Run `/llm-secure-patterns:report` to see your full OWASP LLM Top 10 coverage and remaining gaps — and to catch any LLM surfaces where security skills did not fire during this session.
+  > Run `/llm-secure-patterns:report` for full OWASP LLM Top 10 coverage and gaps.
 
 The last item is non-optional. It is the safety net for adjacent LLM surfaces (ingestion, output rendering, system prompt design, agent action wiring) where this skill does not fire. Skipping the report-mention strands the developer without the means to discover gaps the model missed.
