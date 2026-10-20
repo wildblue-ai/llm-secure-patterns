@@ -10,7 +10,7 @@ OWASP Top 10 for LLM Applications 2025 — applied at code-time, not after the f
 
 Every existing security plugin in the Claude Code ecosystem either addresses traditional web app security or guards Claude Code's own session. None address the fastest-growing attack surface: **the applications developers are building on top of LLM APIs.**
 
-This plugin fills that gap by making [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025) compliance a default behavior of Claude Code, not an afterthought.
+This plugin fills that gap by making [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2024) compliance a default behavior of Claude Code, not an afterthought.
 
 ## What It Does
 
@@ -180,7 +180,7 @@ The three answers cover all skill UX branches: **intro** (apply now vs build fir
 
 ## OWASP LLM Top 10 Coverage
 
-This plugin maps to the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025). Skills are organized by developer activity, not by OWASP category — so multiple skills address the same risk from different angles (defense in depth).
+This plugin maps to the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2024). Skills are organized by developer activity, not by OWASP category — so multiple skills address the same risk from different angles (defense in depth).
 
 ### The 10 OWASP LLM Risks
 

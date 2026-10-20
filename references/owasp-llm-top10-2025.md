@@ -1,6 +1,6 @@
 # OWASP LLM Top 10 (2025) — Plugin Skill Mapping
 
-> This mapping references the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025). Descriptions are paraphrased — consult the original document for authoritative definitions.
+> This mapping references the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2024). Descriptions are paraphrased — consult the original document for authoritative definitions.
 
 ## Summary Table
 

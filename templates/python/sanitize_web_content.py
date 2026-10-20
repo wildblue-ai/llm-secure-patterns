@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 # SECURITY: LLM01 (Prompt Injection) — Level B sanitization pipeline for external content
-# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published November 2025)
+# OWASP: Top 10 for LLM Applications 2025 (Version 2025, published November 2024)
 # Confidence: MODERATE — mitigates encoding-based and hidden-text injection, not semantic attacks
 # Level: Standard
 # Pattern: templates/python/sanitize_web_content.py

@@ -15,7 +15,7 @@ Provided as-is — see SCOPE.md for limitations.
 """
 
 # SECURITY: LLM05 (Improper Output Handling) — Schema validation, HTML escaping, PII scanning, URL detection, prompt leakage detection
-# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published November 2025)
+# OWASP: Top 10 for LLM Applications 2025 (Version 2025, published November 2024)
 # Confidence: MODERATE — flags known dangerous patterns; novel attacks may evade detection
 # Level: Standard
 # Pattern: output_schema_validator

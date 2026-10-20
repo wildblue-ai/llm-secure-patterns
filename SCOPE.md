@@ -14,7 +14,7 @@ Applications handling regulated data, safety-critical workloads, or high-value t
 
 ## What This Plugin Covers
 
-This plugin provides development guidance for building secure LLM-powered applications, mapped to the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025).
+This plugin provides development guidance for building secure LLM-powered applications, mapped to the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2024).
 
 ### Skills included:
 1. **Secure External Ingestion** — Mitigates risks when fetching URLs, scraping pages, calling external APIs, or building RAG pipelines (LLM01, LLM10)
@@ -105,7 +105,7 @@ Use of this plugin does not create a consulting, advisory, or professional-servi
 
 ## Limitations
 
-- This plugin provides development guidance based on the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025). It does not guarantee security.
+- This plugin provides development guidance based on the [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2024). It does not guarantee security.
 - No automated tool replaces security review by qualified professionals.
 - LLM security is a rapidly evolving field. Patterns are current as of the version date and may not address threats discovered after publication.
 - Threat advisories are published as they are verified. Skill and pattern updates are shipped in periodic releases. This project does not guarantee response times.

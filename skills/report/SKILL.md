@@ -13,7 +13,7 @@ metadata:
 
 ## Purpose
 
-This command scans the current project for `# SECURITY:` and `// SECURITY:` annotations placed by llm-secure-patterns skills, maps them to the OWASP Top 10 for LLM Applications 2025 (published November 2025), and generates a `SECURITY_POSTURE.md` at the project root.
+This command scans the current project for `# SECURITY:` and `// SECURITY:` annotations placed by llm-secure-patterns skills, maps them to the OWASP Top 10 for LLM Applications 2025 (published November 2024), and generates a `SECURITY_POSTURE.md` at the project root.
 
 The report is the payoff of the annotation system: an audit-ready document that shows exactly which OWASP LLM risks have verified mitigations, which have gaps, and what risk tradeoffs were accepted.
 
@@ -148,7 +148,7 @@ Use this format:
   Project:    [project directory path]
   Date:       [today's date]
   Generated:  llm-secure-patterns v1.0.0
-  Framework:  OWASP Top 10 for LLM Applications 2025 (Nov 2025)
+  Framework:  OWASP Top 10 for LLM Applications 2025 (Nov 2024)
 
 ═══════════════════════════════════════════════════════════════════
 
@@ -309,7 +309,7 @@ After the detailed findings, always append this final section. It lists the thre
     retrieval layer: access control on vector stores, embedding
     integrity verification, and retrieval result filtering.
 
-  Full guidance: https://owasp.org/www-project-top-10-for-large-language-model-applications/ (published November 2025)
+  Full guidance: https://owasp.org/www-project-top-10-for-large-language-model-applications/ (published November 2024)
 ```
 
 ### Step 8 — Generate DEVELOPER_RECOMMENDATIONS.md

@@ -27,7 +27,7 @@ from typing import Any
 
 
 # SECURITY: LLM06 (Excessive Agency) — Pipeline stage isolation with credential separation
-# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published November 2025)
+# OWASP: Top 10 for LLM Applications 2025 (Version 2025, published November 2024)
 # Confidence: MODERATE — mitigates privilege escalation across stages but does not
 #     eliminate cross-model semantic injection
 # Level: Standard

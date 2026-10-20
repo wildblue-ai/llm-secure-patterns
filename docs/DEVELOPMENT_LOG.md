@@ -275,7 +275,7 @@ Option D ("help me decide") now asks structured questions mapping A→Low, B→M
 
 ## OWASP References
 
-- [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2025)
+- [OWASP Top 10 for LLM Applications 2025](https://owasp.org/www-project-top-10-for-large-language-model-applications/) (published November 2024)
 - [OWASP Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/) — referenced in Skill 5, companion plugin planned for future
 - OWASP AIVSS (AI Vulnerability Scoring System) — draft, noted in roadmap for future integration
 

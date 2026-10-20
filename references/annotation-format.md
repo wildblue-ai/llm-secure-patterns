@@ -6,7 +6,7 @@ When applying any mitigation pattern from a skill, add a structured comment at t
 
 ```python
 # SECURITY: LLM01 (Prompt Injection) — [specific mitigation applied]
-# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published November 2025)
+# OWASP: Top 10 for LLM Applications 2025 (Version 2025, published November 2024)
 # Confidence: [HIGH|MODERATE|LOW] — [brief reason]
 # Level: [Low|Moderate|High]
 # Declined: [stronger option not selected] — [brief reason]
@@ -20,7 +20,7 @@ When applying any mitigation pattern from a skill, add a structured comment at t
 
 ```typescript
 // SECURITY: LLM01 (Prompt Injection) — [specific mitigation applied]
-// OWASP: Top 10 for LLM Applications 2025 (v2025.1, published November 2025)
+// OWASP: Top 10 for LLM Applications 2025 (Version 2025, published November 2024)
 // Confidence: [HIGH|MODERATE|LOW] — [brief reason]
 // Level: [Low|Moderate|High]
 // Declined: [stronger option not selected] — [brief reason]

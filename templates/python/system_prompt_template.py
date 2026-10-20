@@ -20,7 +20,7 @@ import re
 
 # SECURITY: LLM07 (System Prompt Leakage) — delimiter-based untrusted content separation
 # SECURITY: LLM01 (Prompt Injection) — anti-extraction instructions and role separation
-# OWASP: Top 10 for LLM Applications 2025 (v2025.1, published November 2025)
+# OWASP: Top 10 for LLM Applications 2025 (Version 2025, published November 2024)
 # Confidence: MODERATE — instruction-based defenses mitigate but do not eliminate extraction risk
 # Level: Standard
 # Pattern: system_prompt_template

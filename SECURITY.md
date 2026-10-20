@@ -27,8 +27,8 @@ This project ships **security guidance, not security guarantees** (see [SCOPE.md
 
 | Version | Supported |
 | ------- | --------- |
-| 0.9.x (pre-release) | ✅ Current |
-| < 0.9 | ❌ |
+| 1.0.x | ✅ Current |
+| < 1.0 | ❌ |
 
 ## Credit
 
