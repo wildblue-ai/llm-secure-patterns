@@ -34,7 +34,7 @@ from typing import Any
 # Pattern: isolated_pipeline
 # Requires layering: Input sanitization (Skill 1), output validation (Skill 3),
 #     system prompt design (Skill 4)
-# Applied by: llm-secure-patterns v1.0.0 / Agent Action Surface Control
+# Applied by: llm-secure-patterns v1.0.1 / Agent Action Surface Control
 
 
 # Tools whose name prefix indicates a read-only operation. Any tool whose
@@ -600,7 +600,7 @@ if __name__ == "__main__":
         "timestamp": "2026-04-16T12:00:00Z",
         "user_id": "user-42",
         "user_email": "alice@example.com",
-        "system_prompt": "You are a support bot. Use API key sk-abc123def456ghi789jkl012 to look up orders.",
+        "system_prompt": "You are a support bot. Use API key sk-xxxxxxxxxxxxxxxxxxxxxxxx to look up orders.",
         "tool_call": {
             "name": "lookup_order",
             "parameters": {"order_id": "ORD-12345", "include_pii": True},

@@ -42,3 +42,6 @@ tests/adversarial-review/decisions.json
 docs/superpowers/
 docs/SUBMISSION_NOTES.md
 _review/
+
+# Captured session transcript (local reference only; not part of the plugin)
+examples/first-run-existing-code.txt

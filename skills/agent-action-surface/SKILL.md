@@ -3,7 +3,7 @@ name: agent-action-surface
 description: Use when designing or wiring up tool_use, function_calling, MCP servers, multi-agent chains, or calling multiple LLM providers (e.g., Gemini for vision plus Claude for reasoning) in the same pipeline — fire this skill during architecture/planning discussions, not just implementation
 metadata:
   author: WildBlue.AI
-  version: 1.0.0
+  version: 1.0.1
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
@@ -258,7 +258,7 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 - **OWASP ID:** `LLM06 (Excessive Agency)`
 - **Pattern:** `isolated_pipeline`
-- **Applied by:** `llm-secure-patterns v1.0.0 / Agent Action Surface Control`
+- **Applied by:** `llm-secure-patterns v1.0.1 / Agent Action Surface Control`
 
 ## What this skill does NOT cover (additional security layers suggested)
 

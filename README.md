@@ -2,7 +2,7 @@
 
 OWASP Top 10 for LLM Applications 2025 — applied at code-time, not after the fact.
 
-**v1.0.0** — Four rounds of cross-model adversarial review (Claude Sonnet 4.6, GPT-4o, Gemini 2.5 Pro, with Claude Opus 4.6 triage). Covers 7 of 10 OWASP LLM Top 10 2025 categories at code-time; the remaining 3 require organizational controls.
+**v1.0.1** — Four rounds of cross-model adversarial review (Claude Sonnet 4.6, GPT-4o, Gemini 2.5 Pro, with Claude Opus 4.6 triage). Covers 7 of 10 OWASP LLM Top 10 2025 categories at code-time; the remaining 3 require organizational controls.
 
 **Important!** Security guidance, not security guarantees. See [SCOPE.md](SCOPE.md) for full details.
 
@@ -72,7 +72,7 @@ You pick a tier, and Claude writes the code with the audit trail baked in:
 #   are single-process (use Redis in prod) and check/record is not atomic (TOCTOU).
 # Level: Moderate
 # Declined: High — no tiered budgets, request prioritization, or injection classifier (skipped per developer).
-# Applied by: llm-secure-patterns v1.0.0 / LLM Endpoint Hardening
+# Applied by: llm-secure-patterns v1.0.1 / LLM Endpoint Hardening
 # Date applied: 2026-06-03
 @app.post("/chat")
 async def chat(request: ChatRequest, user: User = Depends(get_current_user)):
@@ -210,7 +210,7 @@ Prompt injection is the #1 OWASP LLM risk because it can enter at every point in
 | System prompt structure | System Prompt Design | Delimiters, anti-extraction, credential separation |
 | Cross-model/cross-agent data flow | Agent Action Surface Control | Trust boundaries, stage isolation, credential separation |
 
-**Language agnostic:** Security guidance applies regardless of your programming language. Skills include inline examples in both Python and TypeScript. Full runnable templates are Python-only in v1.0.0 — TypeScript templates planned for v1.1.0 (PRs welcome).
+**Language agnostic:** Security guidance applies regardless of your programming language. Skills include inline examples in both Python and TypeScript. Full runnable templates are Python-only in v1.0.1 — TypeScript templates planned for v1.1.0 (PRs welcome).
 
 **`/llm-secure-patterns:report`** — Generates two audit-ready reports from the `# SECURITY:` annotations in your codebase:
 

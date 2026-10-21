@@ -3,7 +3,7 @@ name: system-prompt-design
 description: Use when designing, writing, editing, or reviewing system prompts for any LLM application — fire this skill during architecture/planning discussions (before prompts are drafted), not just during implementation
 metadata:
   author: WildBlue.AI
-  version: 1.0.0
+  version: 1.0.1
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
@@ -58,7 +58,7 @@ A) Low — no added cost. Keep credentials/secrets out of the prompt; store them
    Dynamic prompt construction can reintroduce credentials.
 B) Moderate (recommended) — no added cost. + UNTRUSTED delimiters + role separation + anti-extraction phrasing + trusted-channel hygiene.
    Behavioral hints, not boundaries — bypassable by roleplay / translation.
-C) High — no added LLM cost in v1.0.0 (keyword scan; model-based filter planned v1.0.1). + dual-prompt architecture + output leakage scan + canary tokens.
+C) High — no added LLM cost in v1.0.1 (keyword scan; model-based filter planned v1.0.2). + dual-prompt architecture + output leakage scan + canary tokens.
    Paraphrase / translation extraction evades the keyword scan and canaries.
 
 Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "verbose" (all tiers) for the full breakdown.
@@ -175,8 +175,8 @@ Everything in Level B (Moderate), plus:
 
 **Tradeoff:** Significant complexity, requires output monitoring infrastructure. Recommended for high-stakes applications where system prompt confidentiality is critical.
 
-- **Cost:** The v1.0.0 keyword-blocklist pattern (`scan_for_prompt_leakage`) adds no LLM calls — its cost is a single string scan per response. The v1.0.1 model-based filter will add +1 LLM call per request; at that point, calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing, show a concrete estimate with "(estimated)" after the number, and always add: "Your actual cost depends on content size, provider pricing, etc."
-- **Latency:** The keyword-blocklist pattern adds sub-millisecond overhead. The v1.0.1 model-based filter will add +1 round-trip to the filter model per request; at that point, estimate based on the developer's chosen model and always add: "Latency varies by model and content size."
+- **Cost:** The v1.0.1 keyword-blocklist pattern (`scan_for_prompt_leakage`) adds no LLM calls — its cost is a single string scan per response. The v1.0.2 model-based filter will add +1 LLM call per request; at that point, calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing, show a concrete estimate with "(estimated)" after the number, and always add: "Your actual cost depends on content size, provider pricing, etc."
+- **Latency:** The keyword-blocklist pattern adds sub-millisecond overhead. The v1.0.2 model-based filter will add +1 round-trip to the filter model per request; at that point, estimate based on the developer's chosen model and always add: "Latency varies by model and content size."
   - For current per-token pricing, refer to https://docs.anthropic.com/en/docs/about-claude/models — costs vary by model choice and content size. This is an estimate only; your actual costs may vary.
 
 ---
@@ -241,7 +241,7 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 - **OWASP ID:** `LLM07 (System Prompt Leakage)`
 - **Pattern:** `system_prompt_template`
-- **Applied by:** `llm-secure-patterns v1.0.0 / System Prompt Design`
+- **Applied by:** `llm-secure-patterns v1.0.1 / System Prompt Design`
 
 ## What this skill does NOT cover (additional security layers suggested)
 

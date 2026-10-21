@@ -89,4 +89,4 @@ The harness will recreate the venv from `requirements.txt` (~30 seconds) and ret
 
 **Root cause:** Google replaced `google-generativeai` with `google-genai`. The old package still works but is no longer maintained.
 
-**Status:** Cosmetic warning only — does not affect functionality. SDK migration to `google-genai` tracked as v1.0.1 item in `docs/adversarial-review/findings-plan.md`.
+**Status:** Cosmetic warning only — does not affect functionality. SDK migration to `google-genai` tracked as a backlog item in `docs/adversarial-review/findings-plan.md`.

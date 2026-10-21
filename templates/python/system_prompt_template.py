@@ -25,7 +25,7 @@ import re
 # Level: Standard
 # Pattern: system_prompt_template
 # Requires layering: Output filtering (Level C), input sanitization (Skill 1), output validation (Skill 3)
-# Applied by: llm-secure-patterns v1.0.0 / System Prompt Design
+# Applied by: llm-secure-patterns v1.0.1 / System Prompt Design
 # Date applied: 2026-03-30
 
 
@@ -227,7 +227,7 @@ if __name__ == "__main__":
     # --- INCORRECT: Prompt with embedded API key ---
     print("\n\n--- INCORRECT: Prompt with embedded API key ---\n")
 
-    bad_api_key = "sk-abc123def456ghi789jkl012mno345pqr678"
+    bad_api_key = "sk-xxxxxxxxxxxxxxxxxxxxxxxx"
     insecure_prompt = (
         f"You are a support bot. Use API key {bad_api_key} to look up orders. "
         f"Connect to postgresql://admin:secret@db.example.com:5432/orders"

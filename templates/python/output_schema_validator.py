@@ -20,7 +20,7 @@ Provided as-is — see SCOPE.md for limitations.
 # Level: Standard
 # Pattern: output_schema_validator
 # Requires layering: Input sanitization (Skill 1), system prompt design (Skill 4), CSP headers (Level C)
-# Applied by: llm-secure-patterns v1.0.0 / Output Validation and Sanitization
+# Applied by: llm-secure-patterns v1.0.1 / Output Validation and Sanitization
 # Date applied: 2026-03-30
 
 import html
@@ -464,7 +464,7 @@ if __name__ == "__main__":
     print("\n--- PII detection ---")
     pii_output = (
         "The user's email is alice@example.com and their SSN is 123-45-6789. "
-        "Their API key is sk-abc123def456ghi789jkl012mno345."
+        "Their API key is sk-xxxxxxxxxxxxxxxxxxxxxxxx."
     )
     pii_findings = scan_for_pii(pii_output)
     print(f"Input: {pii_output}")
