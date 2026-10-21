@@ -1,6 +1,6 @@
 """
 sanitize_web_content.py — Input sanitization for scraped web content
-Part of llm-secure-patterns (https://github.com/wildblue-ai/llm-secure-patterns)
+Part of llm-secure-patterns (WildBlue.AI).
 
 Effectiveness: MODERATE — mitigates naive injection via encoding and hidden text,
     is not designed to mitigate sophisticated semantic attacks

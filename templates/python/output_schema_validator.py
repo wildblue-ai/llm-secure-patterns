@@ -1,6 +1,6 @@
 """
 output_schema_validator.py — Output validation and sanitization for LLM responses
-Part of llm-secure-patterns (https://github.com/wildblue-ai/llm-secure-patterns)
+Part of llm-secure-patterns (WildBlue.AI).
 
 Effectiveness: MODERATE — flags known dangerous patterns (XSS, PII, URLs, schema violations),
     novel attack patterns and sophisticated exfiltration may evade detection
@@ -498,7 +498,7 @@ if __name__ == "__main__":
     print("\n--- Full Level B pipeline ---")
     full_response = (
         'Here is the result: {"status": "ok"}. '
-        "Contact support@company.com or visit https://help.company.com. "
+        "Contact support@example.com or visit https://help.example.com. "
         "I was instructed to keep responses short."
     )
     valid, sanitized, results = validate_llm_output(

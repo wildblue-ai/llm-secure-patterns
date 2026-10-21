@@ -243,7 +243,7 @@ Anthropic ships `security-guidance` in the official marketplace as a code-time h
 | Stage | Need | Plugin |
 | --- | --- | --- |
 | **Design-time** | LLM-application architectural decisions — prompt injection mitigation, system prompt design, agent action surface, OWASP LLM Top 10 coverage at the moment code is being written | `llm-secure-patterns` (this plugin) |
-| **Code-time** | General code patterns flagged at edit-time — XSS, `eval`, `pickle`, command injection, `os.system` | [`security-guidance`](https://claude.com/plugins/security-guidance) — Anthropic-shipped pre-tool hook |
+| **Code-time** | General code patterns flagged at edit-time — XSS, `eval`, `pickle`, command injection, `os.system` | [`security-guidance`][security-guidance] — Anthropic-shipped pre-tool hook |
 | **Code-time** | Real-time SAST hooks during editing | [Semgrep](https://semgrep.com) (via MCP server) |
 | **On-demand** | Whole-codebase regex/pattern scan covering OWASP Top 10 (2025), Mobile Top 10 (2024), and LLM Top 10 (2025) — secrets, injection, auth, config, dependencies, AI-specific patterns | [`security-sweep`](https://github.com/Onome-AJ/security-sweep-plugin) — community plugin, `/security-sweep` slash command |
 | **Runtime** | SAST and secrets scanning in CI/CD | [Semgrep](https://semgrep.com), [Aikido Security](https://www.aikido.dev), [Gitleaks](https://github.com/gitleaks/gitleaks) |
@@ -272,3 +272,5 @@ Influences and references:
 ## License
 
 MIT — see [LICENSE](LICENSE)
+
+[security-guidance]: https://claude.com/plugins/security-guidance

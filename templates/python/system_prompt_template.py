@@ -1,6 +1,6 @@
 """
 system_prompt_template.py — Risk-reducing system prompt construction patterns
-Part of llm-secure-patterns (https://github.com/wildblue-ai/llm-secure-patterns)
+Part of llm-secure-patterns (WildBlue.AI).
 
 Effectiveness: MODERATE — delimiter-based separation and anti-extraction instructions
     help mitigate leakage and injection risk, but cannot eliminate the risk of

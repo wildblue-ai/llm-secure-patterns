@@ -1,5 +1,6 @@
 {
   "name": "wildblue-ai",
+  "description": "WildBlue.AI plugins for Claude Code: secure design patterns for LLM applications.",
   "owner": {
     "name": "WildBlue.AI",
     "email": "hello@wildblue.ai"

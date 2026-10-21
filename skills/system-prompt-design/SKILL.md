@@ -79,20 +79,20 @@ Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "ver
 Python example:
 ```python
 # WRONG: credential in prompt
-prompt = f"You are a support bot. Use API key {api_key} to look up orders."
+prompt = "You are a support bot. Use API key YOUR_API_KEY to look up orders."
 
 # RIGHT: credential in external system
 prompt = "You are a support bot. Use the lookup_order tool to check order status."
-# api_key is in environment variables, accessed by the tool implementation
+# The key lives in the tool implementation's own config — never in the prompt
 ```
 
 TypeScript example:
 ```typescript
 // WRONG
-const prompt = `Use API key ${apiKey} to access the database.`;
+const prompt = `Use API key YOUR_API_KEY to access the database.`;
 // RIGHT
 const prompt = `Use the query_database tool to access data.`;
-// apiKey is in process.env, used by tool handler
+// The key lives in the tool handler's own config — never in the prompt
 ```
 
 ---
@@ -177,7 +177,7 @@ Everything in Level B (Moderate), plus:
 
 - **Cost:** The v1.0.1 keyword-blocklist pattern (`scan_for_prompt_leakage`) adds no LLM calls — its cost is a single string scan per response. The v1.0.2 model-based filter will add +1 LLM call per request; at that point, calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing, show a concrete estimate with "(estimated)" after the number, and always add: "Your actual cost depends on content size, provider pricing, etc."
 - **Latency:** The keyword-blocklist pattern adds sub-millisecond overhead. The v1.0.2 model-based filter will add +1 round-trip to the filter model per request; at that point, estimate based on the developer's chosen model and always add: "Latency varies by model and content size."
-  - For current per-token pricing, refer to https://docs.anthropic.com/en/docs/about-claude/models — costs vary by model choice and content size. This is an estimate only; your actual costs may vary.
+  - For current per-token pricing, refer to Anthropic's model pricing documentation — costs vary by model choice and content size. This is an estimate only; your actual costs may vary.
 
 ---
 

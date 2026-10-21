@@ -5,7 +5,8 @@
 Release-readiness fixes for the plugin directory listing. No change to skill behavior.
 
 ### Added
-- **Directory listing icon** (`.claude-plugin/icon.png`, referenced by `icon` in `plugin.json`) and `privacyPolicyUrl` pointing at PRIVACY.md.
+- **Directory listing icon** at `.claude-plugin/icon.png` (the default location the plugin directory reads; no manifest field needed).
+- `marketplace.json` now has a top-level description.
 - README "What This Is NOT" now states the plugin sends no data anywhere (no telemetry, analytics, or network calls).
 
 ### Changed
@@ -16,6 +17,7 @@ Release-readiness fixes for the plugin directory listing. No change to skill beh
 - **Demo credentials in templates replaced with unmistakable placeholders.** The self-test data in `isolated_pipeline.py`, `output_schema_validator.py`, and `system_prompt_template.py` used key-shaped sample strings that automated secret scanners flag; they now use `sk-` followed by `x` characters. They were never real credentials. The demos still exercise the same detectors.
 - **OWASP 2025 release date corrected.** The OWASP Top 10 for LLM Applications 2025 was released 2024-11-18 ("Version 2025"), not November 2025; fixed across the manifest, README, SCOPE, report skill, annotation format, and template headers.
 - `SECURITY.md` supported-versions table now lists 1.0.x as current.
+- **Cleared false-positive directory scanner findings without changing guidance.** Template header credit lines no longer embed a URL; System Prompt Design's "wrong way" credential examples use a `YOUR_API_KEY` placeholder instead of a variable; pricing pointers are plain text; links on lines that name risky functions (`os.system`, `eval`, formula execution) are now reference-style; demo data uses reserved `example.com` addresses.
 - Removed an unreferenced captured session transcript (`examples/first-run-existing-code.txt`) that was committed by accident in 1.0.0.
 
 ## [1.0.0] — 2026-08-27

@@ -45,3 +45,6 @@ _review/
 
 # Captured session transcript (local reference only; not part of the plugin)
 examples/first-run-existing-code.txt
+
+# Local design assets (originals; the shipped listing icon is .claude-plugin/icon.png)
+images/

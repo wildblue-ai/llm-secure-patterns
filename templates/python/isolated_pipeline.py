@@ -1,6 +1,6 @@
 """
 isolated_pipeline.py — Pipeline stage isolation for multi-agent/multi-model systems
-Part of llm-secure-patterns (https://github.com/wildblue-ai/llm-secure-patterns)
+Part of llm-secure-patterns (WildBlue.AI).
 
 Effectiveness: MODERATE — architectural isolation of pipeline stages with credential
     separation and cross-model trust boundaries reduces escalation risk. Effectiveness

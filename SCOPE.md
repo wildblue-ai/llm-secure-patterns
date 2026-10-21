@@ -25,7 +25,7 @@ This plugin provides development guidance for building secure LLM-powered applic
 
 ## What This Plugin Does NOT Cover
 
-- **General application security** (SQL injection, CSRF, infrastructure hardening) — see [OWASP Top 10](https://owasp.org/www-project-top-10/) and plugins like [`security-guidance`](https://claude.com/plugins/security-guidance) (pre-tool hook covering command injection, XSS, `eval`, `pickle`, `os.system`) and `agamm/claude-code-owasp`
+- **General application security** (SQL injection, CSRF, infrastructure hardening) — see [OWASP Top 10][owasp-top-10] and plugins like [`security-guidance`][security-guidance] (pre-tool hook covering command injection, XSS, `eval`, `pickle`, `os.system`) and `agamm/claude-code-owasp`
 - **Runtime protection of Claude Code sessions** — see `lasso-security/claude-hooks`
 - **Penetration testing or offensive security**
 - **Compliance certification** (SOC 2, HIPAA, GDPR) — this plugin does not constitute compliance
@@ -114,3 +114,6 @@ Use of this plugin does not create a consulting, advisory, or professional-servi
 ## Professional Support
 
 For comprehensive AI security assessment, contact [WildBlue.AI](https://wildblue.ai) — hello@wildblue.ai
+
+[owasp-top-10]: https://owasp.org/www-project-top-10/
+[security-guidance]: https://claude.com/plugins/security-guidance

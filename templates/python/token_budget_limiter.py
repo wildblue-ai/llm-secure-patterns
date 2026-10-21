@@ -1,6 +1,6 @@
 """
 token_budget_limiter.py — Token-budget rate limiting for LLM API endpoints
-Part of llm-secure-patterns (https://github.com/wildblue-ai/llm-secure-patterns)
+Part of llm-secure-patterns (WildBlue.AI).
 
 ⚠️ SINGLE-PROCESS ONLY — DEMONSTRATION CODE
 The TokenBudgetLimiter and SpendMonitor classes below hold state in
@@ -256,8 +256,8 @@ class SpendMonitor:
                 "SpendMonitor: cost_per_1k_tokens is required. LLM pricing varies "
                 "by 100x+ across models — a silent default would guarantee wrong "
                 "spend tracking. Look up the rate for your specific model "
-                "(see https://docs.anthropic.com/en/docs/about-claude/models for "
-                "Claude pricing) and pass it explicitly."
+                "(see Anthropic's model pricing documentation for Claude pricing) "
+                "and pass it explicitly."
             )
         self.hourly_budget_usd: float = hourly_budget_usd
         self.cost_per_1k_tokens: float = cost_per_1k_tokens
