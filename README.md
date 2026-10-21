@@ -236,14 +236,14 @@ See [SCOPE.md](SCOPE.md) for detailed coverage boundaries.
 
 This plugin is **complementary, not competing** with general-application-security tools. Install whichever combination matches your stack.
 
-Anthropic ships `security-guidance` in the official marketplace as a code-time hook for traditional appsec patterns (command injection, XSS, eval, pickle, os.system). `llm-secure-patterns` is built to be installed alongside it — the two cover different frameworks (OWASP Top 10 vs. OWASP Top 10 for LLM Applications) at different lifecycle stages.
+Anthropic ships `security-guidance` in the official marketplace as a code-time hook for traditional appsec patterns (command injection, XSS, unsafe deserialization, dynamic code execution). `llm-secure-patterns` is built to be installed alongside it — the two cover different frameworks (OWASP Top 10 vs. OWASP Top 10 for LLM Applications) at different lifecycle stages.
 
 **Mental model:** `security-sweep` is ESLint for LLM apps (scan-and-report). `llm-secure-patterns` is a senior code reviewer pairing with you during development (ask-explain-apply).
 
 | Stage | Need | Plugin |
 | --- | --- | --- |
 | **Design-time** | LLM-application architectural decisions — prompt injection mitigation, system prompt design, agent action surface, OWASP LLM Top 10 coverage at the moment code is being written | `llm-secure-patterns` (this plugin) |
-| **Code-time** | General code patterns flagged at edit-time — XSS, `eval`, `pickle`, command injection, `os.system` | [`security-guidance`][security-guidance] — Anthropic-shipped pre-tool hook |
+| **Code-time** | General code patterns flagged at edit-time — XSS, command injection, unsafe deserialization, dynamic code execution | [`security-guidance`][security-guidance] — Anthropic-shipped pre-tool hook |
 | **Code-time** | Real-time SAST hooks during editing | [Semgrep](https://semgrep.com) (via MCP server) |
 | **On-demand** | Whole-codebase regex/pattern scan covering OWASP Top 10 (2025), Mobile Top 10 (2024), and LLM Top 10 (2025) — secrets, injection, auth, config, dependencies, AI-specific patterns | [`security-sweep`](https://github.com/Onome-AJ/security-sweep-plugin) — community plugin, `/security-sweep` slash command |
 | **Runtime** | SAST and secrets scanning in CI/CD | [Semgrep](https://semgrep.com), [Aikido Security](https://www.aikido.dev), [Gitleaks](https://github.com/gitleaks/gitleaks) |
