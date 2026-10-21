@@ -26,7 +26,7 @@ servers:
 
 Reject any server whose name or URL is not in the allowlist at registration time. Log the rejection. An unexpected registration attempt is a signal, not noise.
 
-### Scaffold 2 — schema hash pinning (SSH known_hosts pattern)
+### Scaffold 2 — schema hash pinning (known-hosts-style pinning)
 
 ```python
 # .mcp-pins.json  (checked in)

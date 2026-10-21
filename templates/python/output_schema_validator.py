@@ -90,7 +90,7 @@ def validate_json_schema(
             if key not in declared_keys:
                 errors.append(
                     f"Unexpected top-level field: '{key}' "
-                    f"(reject unknown keys; pass allow_additional_properties=True to disable)"
+                    f"(reject unknown keys; set allow_additional_properties=True to disable)"
                 )
 
     # Check types if properties are defined
@@ -422,7 +422,7 @@ if __name__ == "__main__":
     print("=" * 60)
 
     # --- Schema validation: passing ---
-    print("\n--- Schema validation (pass) ---")
+    print("\n--- Schema validation (valid input) ---")
     good_response = '{"name": "Alice", "age": 30, "role": "engineer"}'
     schema = {
         "required": ["name", "age"],

@@ -5,7 +5,7 @@
 Release-readiness fixes for the plugin directory listing. No change to skill behavior.
 
 ### Added
-- **Directory listing icon** at `.claude-plugin/icon.png` (the default location the plugin directory reads; no manifest field needed).
+- **Directory listing icon**, in the default location the plugin directory reads (no manifest field needed).
 - `marketplace.json` now has a top-level description.
 - README "What This Is NOT" now states the plugin sends no data anywhere (no telemetry, analytics, or network calls).
 
