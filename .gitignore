@@ -4,6 +4,9 @@
 !.env.example
 .claude/
 
+# OS metadata
+.DS_Store
+
 # Python build artifacts
 __pycache__/
 *.py[cod]
@@ -30,6 +33,7 @@ LLM-SECURE-DESIGN-PATTERNS-PROJECT.md
 # Reference PDFs (kept out of repo to limit size; download links in docs)
 docs/OWASP-Top-10-for-Agentic-Applications-2026-12.6-1.pdf
 docs/Architectural Decision Items — Run 3 Adversarial Review.pdf
+OWASP 2026/
 
 # Run 3 architectural-decisions form output (working artifact, not source of truth)
 tests/adversarial-review/decisions.json

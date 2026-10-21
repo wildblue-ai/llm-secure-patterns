@@ -227,6 +227,7 @@ A disposition prompt at the end lets you commit both, gitignore both, or mix —
 - Not a guarantee of security
 - Not a replacement for professional security review
 - Not general application security (see [SCOPE.md](SCOPE.md) and the Related plugins table below)
+- **Not a data collector** — the plugin sends no data anywhere: no telemetry, no analytics, no network calls. Skills, the SessionStart hook, and the report all run locally. (Your conversation with Claude still flows through Claude Code as usual.) See [PRIVACY.md](PRIVACY.md).
 - **Not authoritative on LLM pricing** — cost and latency estimates shown for Level C tier options are approximations from the model's training-time knowledge. LLM provider pricing changes; verify against current pricing pages before using estimates for budgeting decisions.
 
 See [SCOPE.md](SCOPE.md) for detailed coverage boundaries.
