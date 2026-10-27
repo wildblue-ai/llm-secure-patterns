@@ -3,7 +3,7 @@ name: secure-external-ingestion
 description: Use when designing or implementing code that fetches URLs, scrapes pages, calls external APIs, parses PDFs/HTML from untrusted sources, builds RAG retrieval pipelines, or processes any external content that will enter an LLM context window — fire this skill during architecture/planning discussions, not just implementation
 metadata:
   author: WildBlue.AI
-  version: 1.0.3
+  version: 1.0.4
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
@@ -232,7 +232,7 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 - **OWASP ID:** `LLM01 (Prompt Injection)`
 - **Pattern:** `sanitize_web_content`
-- **Applied by:** `llm-secure-patterns v1.0.3 / Secure External Ingestion`
+- **Applied by:** `llm-secure-patterns v1.0.4 / Secure External Ingestion`
 
 ## What this skill does NOT cover (additional security layers suggested)
 

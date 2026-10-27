@@ -3,7 +3,7 @@
 Append-only record of each cross-model adversarial review run. One entry per run. Never edit past entries.
 
 For per-finding detail, see [findings-plan.md](findings-plan.md).
-For how the harness works, see [tests/adversarial-review/README.md](../../tests/adversarial-review/README.md).
+The review harness itself is kept local and is not published with the plugin, because it calls external model APIs with the developer's own keys.
 
 ---
 

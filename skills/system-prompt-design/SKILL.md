@@ -3,7 +3,7 @@ name: system-prompt-design
 description: Use when designing, writing, editing, or reviewing system prompts for any LLM application — fire this skill during architecture/planning discussions (before prompts are drafted), not just during implementation
 metadata:
   author: WildBlue.AI
-  version: 1.0.3
+  version: 1.0.4
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
@@ -58,7 +58,7 @@ A) Low — no added cost. Keep credentials/secrets out of the prompt; store them
    Dynamic prompt construction can reintroduce credentials.
 B) Moderate (recommended) — no added cost. + UNTRUSTED delimiters + role separation + anti-extraction phrasing + trusted-channel hygiene.
    Behavioral hints, not boundaries — bypassable by roleplay / translation.
-C) High — no added LLM cost in v1.0.3 (keyword scan; model-based filter planned v1.0.4). + dual-prompt architecture + output leakage scan + canary tokens.
+C) High — no added LLM cost in v1.0.4 (keyword scan; model-based filter planned v1.0.5). + dual-prompt architecture + output leakage scan + canary tokens.
    Paraphrase / translation extraction evades the keyword scan and canaries.
 
 Reply A / B / C to apply · D if you're not sure · "details" (one tier) or "verbose" (all tiers) for the full breakdown.
@@ -163,7 +163,7 @@ Everything in Level B (Moderate), plus:
   **What this does and doesn't give you.** No API placement makes a system prompt inaccessible to the model — whatever you pass via the `system` parameter, the assistant prefill, a prepended user turn, or tool-call scaffolding is all visible to the same model that generates the response. Dual-prompt is about *leakage surface*, not cryptographic confidentiality. Concrete pattern: put user-visible framing ("You are a helpful support assistant") in the `system` parameter, and reasoning scaffolds ("Check the order database via `get_order(...)` before answering") in an assistant prefill or tool-description field. Extraction attempts targeting one surface tend to return that surface's text, not the other — reducing how much of the full instruction set a single leak exposes. A full working code scaffold will ship with the Developer Recommendations Report.
 - **Output filtering:** Scan responses for system prompt fragments before returning them. Call `scan_for_prompt_leakage` from Output Validation's `templates/python/output_schema_validator.py` on every response, passing a `prompt_fragments` list containing the instruction lines from your own system prompt. This is a **shallow heuristic — alerting signal only, not a blocking control.** It flags only verbatim or near-verbatim echo of (a) caller-supplied prompt fragments and (b) a small fixed list of "leakage indicator" phrases ("my instructions are…", "i was told to…"). It will **false-positive** on benign assistant output ("My instructions are clear: be helpful") and **false-negative** on any paraphrase, translation, encoding, or stylistic rewrite ("My core directives state…"). Treat hits as a reason to investigate, not as evidence of a successful or unsuccessful extraction attempt.
 
-  Because the keyword pattern misses paraphrase / translation / encoding extraction, reduce blast radius at the source: keep credentials, API keys, internal URLs, and PII out of the system prompt — runtime-inject them per request (see Agent Action Surface Control). A leak of operational instructions is recoverable; a leak of credentials is not. A model-based filter is planned for v1.0.4.
+  Because the keyword pattern misses paraphrase / translation / encoding extraction, reduce blast radius at the source: keep credentials, API keys, internal URLs, and PII out of the system prompt — runtime-inject them per request (see Agent Action Surface Control). A leak of operational instructions is recoverable; a leak of credentials is not. A model-based filter is planned for v1.0.5.
 - **Canary tokens:** Embed unique strings in the system prompt; if they appear in output, leakage has occurred — trigger an alert.
 
   **Caveat:** Canaries detect verbatim or near-verbatim echo. A paraphrase-based extraction that conveys the instruction's meaning without reproducing any canary string will not trip this signal. Canaries are also one-shot per rotation — once an attacker learns what the canary is, they can explicitly avoid it. Rotate canaries regularly and treat a canary hit as high-signal evidence of leakage, but treat an absence of hits as weak evidence of safety.
@@ -175,8 +175,8 @@ Everything in Level B (Moderate), plus:
 
 **Tradeoff:** Significant complexity, requires output monitoring infrastructure. Recommended for high-stakes applications where system prompt confidentiality is critical.
 
-- **Cost:** The v1.0.3 keyword-blocklist pattern (`scan_for_prompt_leakage`) adds no LLM calls — its cost is a single string scan per response. The v1.0.4 model-based filter will add +1 LLM call per request; at that point, calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing, show a concrete estimate with "(estimated)" after the number, and always add: "Your actual cost depends on content size, provider pricing, etc."
-- **Latency:** The keyword-blocklist pattern adds sub-millisecond overhead. The v1.0.4 model-based filter will add +1 round-trip to the filter model per request; at that point, estimate based on the developer's chosen model and always add: "Latency varies by model and content size."
+- **Cost:** The v1.0.4 keyword-blocklist pattern (`scan_for_prompt_leakage`) adds no LLM calls — its cost is a single string scan per response. The v1.0.5 model-based filter will add +1 LLM call per request; at that point, calculate approximate per-request cost based on the developer's expected content size and current Claude model pricing, show a concrete estimate with "(estimated)" after the number, and always add: "Your actual cost depends on content size, provider pricing, etc."
+- **Latency:** The keyword-blocklist pattern adds sub-millisecond overhead. The v1.0.5 model-based filter will add +1 round-trip to the filter model per request; at that point, estimate based on the developer's chosen model and always add: "Latency varies by model and content size."
   - For current per-token pricing, refer to Anthropic's model pricing documentation — costs vary by model choice and content size. This is an estimate only; your actual costs may vary.
 
 ---
@@ -241,7 +241,7 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 - **OWASP ID:** `LLM07 (System Prompt Leakage)`
 - **Pattern:** `system_prompt_template`
-- **Applied by:** `llm-secure-patterns v1.0.3 / System Prompt Design`
+- **Applied by:** `llm-secure-patterns v1.0.4 / System Prompt Design`
 
 ## What this skill does NOT cover (additional security layers suggested)
 

@@ -12,12 +12,10 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
-tests/adversarial-review/.venv/
 
 # Test scratch space
 manual_tests.md
 tests/results/
-tests/adversarial-review/results/
 tests/run-template-demos.sh
 
 # Working docs (private to the developer; not part of the public repo)
@@ -35,8 +33,6 @@ docs/OWASP-Top-10-for-Agentic-Applications-2026-12.6-1.pdf
 docs/Architectural Decision Items — Run 3 Adversarial Review.pdf
 OWASP 2026/
 
-# Run 3 architectural-decisions form output (working artifact, not source of truth)
-tests/adversarial-review/decisions.json
 
 # Submission drafts and superpowers scratch
 docs/superpowers/
@@ -48,3 +44,7 @@ examples/first-run-existing-code.txt
 
 # Local design assets (originals; the shipped listing icon is .claude-plugin/icon.png)
 images/
+
+# Cross-model adversarial review harness (local only: it calls external model
+# APIs with the developer's own keys, so it is not shipped with the plugin)
+tests/adversarial-review/
