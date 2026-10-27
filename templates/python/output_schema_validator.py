@@ -462,9 +462,11 @@ if __name__ == "__main__":
 
     # --- PII detection ---
     print("\n--- PII detection ---")
+    # Obviously fake key, built at run time so no key-shaped literal ships in this file.
+    fake_key = "sk-" + "x" * 24
     pii_output = (
         "The user's email is alice@example.com and their SSN is 123-45-6789. "
-        "Their API key is sk-xxxxxxxxxxxxxxxxxxxxxxxx."
+        f"Their API key is {fake_key}."
     )
     pii_findings = scan_for_pii(pii_output)
     print(f"Input: {pii_output}")

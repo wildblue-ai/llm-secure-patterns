@@ -596,11 +596,13 @@ if __name__ == "__main__":
     # --- Audit log redaction (redact_for_audit_log) ---
     print("\n" + "-" * 70)
     print("\n[7] Audit log redaction (redact_for_audit_log):\n")
+    # Obviously fake key, built at run time so no key-shaped literal ships in this file.
+    fake_key = "sk-" + "x" * 24
     raw_event = {
         "timestamp": "2026-04-16T12:00:00Z",
         "user_id": "user-42",
         "user_email": "alice@example.com",
-        "system_prompt": "You are a support bot. Use API key sk-xxxxxxxxxxxxxxxxxxxxxxxx to look up orders.",
+        "system_prompt": f"You are a support bot. Use API key {fake_key} to look up orders.",
         "tool_call": {
             "name": "lookup_order",
             "parameters": {"order_id": "ORD-12345", "include_pii": True},

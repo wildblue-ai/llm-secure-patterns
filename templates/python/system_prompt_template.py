@@ -227,10 +227,11 @@ if __name__ == "__main__":
     # --- INCORRECT: Prompt with embedded API key ---
     print("\n\n--- INCORRECT: Prompt with embedded API key ---\n")
 
-    bad_api_key = "sk-xxxxxxxxxxxxxxxxxxxxxxxx"
+    # Obviously fake key, built at run time so no key-shaped literal ships in this file.
+    bad_api_key = "sk-" + "x" * 24
     insecure_prompt = (
         f"You are a support bot. Use API key {bad_api_key} to look up orders. "
-        f"Connect to postgresql://admin:secret@db.example.com:5432/orders"
+        f"Connect to postgresql://<user>:<password>@db.example.com:5432/orders"
     )
     print(insecure_prompt)
 

@@ -9,5 +9,6 @@
   "homepage": "https://github.com/wildblue-ai/llm-secure-patterns",
   "repository": "https://github.com/wildblue-ai/llm-secure-patterns",
   "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
   "keywords": ["security", "owasp", "llm", "ai-safety"]
 }

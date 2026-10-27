@@ -2,10 +2,12 @@
 
 ## [1.0.2] — 2026-10-27
 
-Documentation-only patch. No change to skill behavior.
+Plugin directory policy fixes. No change to skill behavior.
 
 ### Changed
 - **Trust-tier credential scaffold** (`skills/report/recommendations/01-trust-tier-credentials.md`) no longer reads API keys from environment variables. The example now takes one key per trust tier as a parameter, and a new first checklist item says to keep each key in a secret store, never in code or a prompt. The lesson (separate keys and clients per trust tier, routed by content provenance) is unchanged. The example model name is updated to `claude-sonnet-5-5`.
+- **Demo values in three Python templates** (`isolated_pipeline.py`, `output_schema_validator.py`, `system_prompt_template.py`) no longer ship a key-shaped literal. The obviously fake key is built when the demo runs, and the demo connection string uses `<user>:<password>` placeholders. Demo output is unchanged: the redactor and detectors still catch the fake key.
+- `plugin.json` now names the listing icon explicitly.
 - Roadmap's planned-work section renamed from v1.0.2 to v1.0.3 (this patch release took the v1.0.2 number); its contents are unchanged.
 
 ## [1.0.1] — 2026-10-21
