@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2] — 2026-10-27
+
+Documentation-only patch. No change to skill behavior.
+
+### Changed
+- **Trust-tier credential scaffold** (`skills/report/recommendations/01-trust-tier-credentials.md`) no longer reads API keys from environment variables. The example now takes one key per trust tier as a parameter, and a new first checklist item says to keep each key in a secret store, never in code or a prompt. The lesson (separate keys and clients per trust tier, routed by content provenance) is unchanged. The example model name is updated to `claude-sonnet-5-5`.
+- Roadmap's planned-work section renamed from v1.0.2 to v1.0.3 (this patch release took the v1.0.2 number); its contents are unchanged.
+
 ## [1.0.1] — 2026-10-21
 
 Release-readiness fixes for the plugin directory listing. No change to skill behavior.
@@ -92,25 +100,25 @@ Four rounds of cross-model adversarial review completed (Runs 1, 2, 3, 4 — see
 
 ## Roadmap
 
-### v1.0.2 (planned)
+### v1.0.3 (planned)
 
-The bulk of the v1.0.2 backlog comes from Run 4 adversarial review (2026-04-24) — see [docs/adversarial-review/AUDIT_LOG.md](docs/adversarial-review/AUDIT_LOG.md) for the per-skill triage tables and the cross-skill patterns identified. Run 4 surfaced 47 items triaged as v1.0.2 (alongside 47 fix-now items that shipped in v0.9.0 after a focused fix cycle, and 46 won't-fix items documented in [SCOPE.md](SCOPE.md)).
+The bulk of the v1.0.3 backlog comes from Run 4 adversarial review (2026-04-24) — see [docs/adversarial-review/AUDIT_LOG.md](docs/adversarial-review/AUDIT_LOG.md) for the per-skill triage tables and the cross-skill patterns identified. Run 4 surfaced 47 items triaged as v1.0.3 (alongside 47 fix-now items that shipped in v0.9.0 after a focused fix cycle, and 46 won't-fix items documented in [SCOPE.md](SCOPE.md)).
 
-**v1.0.2 themes from Run 4:**
+**v1.0.3 themes from Run 4:**
 - **Multi-turn / context priming caveats** — strengthen cross-references and per-skill notes; the limitation is already in SCOPE.md but skills don't all flag it consistently
 - **OWASP scope narrowing** — tighten the OWASP-category claims in System Prompt Design (LLM01), Output Validation (LLM05, LLM02), and Agent Action Surface (LLM06) to match what the implementations actually deliver, and add explicit caveats for what they don't
 - **Unicode coverage enumeration** — add BiDi overrides (U+202A–U+202E, U+2066–U+2069), U+E0000 tag characters, and zero-width joiners to the existing NFKC partial-coverage caveat in SCOPE.md, and reference from skills
 - **Production-readiness caveats** — strengthen "demo only" framing on in-memory rate limiters, single-process spend monitors, hardcoded model/cost defaults
-- **Per-skill v1.0.2 items** (full list in `tests/adversarial-review/results/2026-04-24/<skill>/findings.md` — gitignored, local copy only):
+- **Per-skill v1.0.3 items** (full list in `tests/adversarial-review/results/2026-04-24/<skill>/findings.md` — gitignored, local copy only):
   - secure-external-ingestion (9 items): HTTP response header injection note, URL-reflected injection, `_try_base64_decode` UTF-8 assumption, Base64 line-wrap evasion caveat, ROT13 vocabulary list strengthening, structured-data schema enforcement, RAG chunk-boundary injection, LLM02 ingestion guidance, PDF surface enumeration
   - llm-endpoint-hardening (8 items): multi-turn priming subsection, response-validation pointer, content-type confusion, conditional tool-use guidance, header-as-prompt-injection note, hardcoded model string extraction, classifier timing side-channel, compute-cost variability note
   - output-validation (12 items): ReDoS analysis on phone/URL regexes, PII scan refactor, international phone formats, generic-key false-positive risk, GitHub/Stripe key patterns, Markdown attribute injection, formula injection (DDE/pipe), semantic injection in valid output, LLM-as-judge recursive injection, CRLF in headers, second-order injection, prompt-leakage paraphrase caveat
   - system-prompt-design (9 items): multi-turn context priming, downstream agent injection (LLM02), least-privilege prompt phrasing, complex data formats (SVG/CSV/PDF), nested type checking, empty-string check completeness, US-centric PII regex, credential-regex production warning, canary-token oracle disclosure
   - agent-action-surface (9 items): tool-error wrapping, tool-schema parameter-name injection, audit-log parameter-name exfiltration, `log_tool_parameter_values` opt-in refactor, trust-chain typo validation, advisory-only framing for `validate_pipeline`, MCP confused deputy, dynamic schema pinning, system prompt exfiltration via tool args
 
-**Other v1.0.2 work (carry-overs from prior runs):**
+**Other v1.0.3 work (carry-overs from prior runs):**
 - Document and address Superpowers subagent-driven development interaction where security skills trigger during implementation but get rejected by the spec reviewer as "off-plan"
-- **Model-based output filter for System Prompt Design Level C** — filter-prompt template covering paraphrased, translated, and encoded extraction attempts, with adversarial-evasion caveats. v0.9.0 ships an interim keyword-blocklist pattern via Output Validation's `scan_for_prompt_leakage`; v1.0.2 adds the model-based filter for threat models where verbatim-fragment detection is insufficient.
+- **Model-based output filter for System Prompt Design Level C** — filter-prompt template covering paraphrased, translated, and encoded extraction attempts, with adversarial-evasion caveats. v0.9.0 ships an interim keyword-blocklist pattern via Output Validation's `scan_for_prompt_leakage`; v1.0.3 adds the model-based filter for threat models where verbatim-fragment detection is insufficient.
 - **Topology-aware rate limiter (LLM10).** `llm-endpoint-hardening`'s Level B/C in-memory token-budget limiter and spend monitor silently degrade to per-worker limits under any multi-process/multi-pod deployment — the effective budget scales with worker count, not the configured value (see SCOPE.md "Known Limitations — Reference Implementation Gaps (Planned)"). Fix (not yet built): ask an explicit single-process vs. multi-process/pod question during Level B/C tier selection, and ship a Redis-backed reference implementation (`check_and_reserve` / `record_actual_usage` / `is_circuit_breaker_open` — the interface the skill already documents) to offer when the answer is multi-process.
 
 ### OWASP LLM Top 10:2026 migration (planned, version TBD)
