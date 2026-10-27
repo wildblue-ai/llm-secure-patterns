@@ -32,6 +32,8 @@ git merge worktree-agent-XXXX
 
 ## Gemini API — Thinking Model Token Budget
 
+**Maintainer note:** the cross-model adversarial review harness is kept local and not published (see CHANGELOG 1.0.5), so this section applies only to the maintainer's copy.
+
 **Problem:** Gemini 2.5 Pro returned `finish_reason: 2` (MAX_TOKENS) with no output `Part`, causing `response.text` to raise an error.
 
 **Root cause:** Gemini 2.5 Pro is a thinking model. Thinking tokens count against `max_output_tokens` and are consumed before visible output. With `max_output_tokens=2000`, thinking used the entire budget, leaving zero tokens for actual output.
@@ -41,6 +43,8 @@ git merge worktree-agent-XXXX
 ---
 
 ## Adversarial Review Harness — `[Errno 2] No such file or directory`
+
+**Maintainer note:** the cross-model adversarial review harness is kept local and not published (see CHANGELOG 1.0.5), so this section applies only to the maintainer's copy.
 
 **Problem:** Running `./run.sh` produces `FAIL: [Errno 2] No such file or directory` for one or more reviewers (typically Claude and/or GPT), followed by `SyncHttpxClientWrapper` errors.
 
@@ -65,6 +69,8 @@ The harness will recreate the venv from `requirements.txt` (~30 seconds) and ret
 
 ## Adversarial Review — Triage Refusal (safety filter)
 
+**Maintainer note:** the cross-model adversarial review harness is kept local and not published (see CHANGELOG 1.0.5), so this section applies only to the maintainer's copy.
+
 **Problem:** The triage step for `secure-external-ingestion` returns `ERROR: Triage returned empty response (stop_reason: refusal)` while the other 4 skills triage successfully.
 
 **Root cause:** Claude Opus 4.6's safety filter triggers when the combined content of all 3 reviewer files (claude.md + gpt.md + gemini.md) contains too many explicit attack payloads, injection examples, and exploit descriptions. The SEI skill reviews tend to have the most detailed attack content because the skill directly deals with injection sanitization. Each reviewer file passes individually, but concatenated into the triage prompt they exceed the safety threshold.
@@ -84,6 +90,8 @@ The harness will recreate the venv from `requirements.txt` (~30 seconds) and ret
 ---
 
 ## Gemini API — Deprecated SDK Warning
+
+**Maintainer note:** the cross-model adversarial review harness is kept local and not published (see CHANGELOG 1.0.5), so this section applies only to the maintainer's copy.
 
 **Problem:** `FutureWarning: All support for the google.generativeai package has ended.`
 

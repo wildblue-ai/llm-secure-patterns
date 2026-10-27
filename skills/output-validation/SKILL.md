@@ -3,7 +3,7 @@ name: output-validation
 description: Use when designing or implementing code where LLM responses are rendered as HTML or markup in a frontend, written to a database, passed to another service, or used to generate emails or documents — fire this skill during architecture/planning discussions, not just implementation. Not for SQL or shell command construction — those require parameterized queries and argument arrays, not string escaping (see the Scope section in SKILL.md)
 metadata:
   author: WildBlue.AI
-  version: 1.0.4
+  version: 1.0.5
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
@@ -309,7 +309,7 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 - **OWASP ID:** `LLM05 (Improper Output Handling)`
 - **Pattern:** `output_schema_validator`
-- **Applied by:** `llm-secure-patterns v1.0.4 / Output Validation and Sanitization`
+- **Applied by:** `llm-secure-patterns v1.0.5 / Output Validation and Sanitization`
 
 ## What this skill does NOT cover (additional security layers suggested)
 
