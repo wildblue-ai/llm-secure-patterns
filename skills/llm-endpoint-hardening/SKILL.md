@@ -3,7 +3,7 @@ name: llm-endpoint-hardening
 description: Use when designing or building a web route (FastAPI, Flask, Express, or similar) that accepts user input and forwards it to any LLM API (Claude, OpenAI, Gemini, or similar) — fire this skill during architecture/planning discussions, not just implementation
 metadata:
   author: WildBlue.AI
-  version: 1.0.2
+  version: 1.0.3
   homepage: https://github.com/wildblue-ai/llm-secure-patterns
 ---
 
@@ -105,7 +105,7 @@ async def chat(request: ChatRequest, user: User = Depends(get_current_user)):
 Accurate path — Anthropic SDK's `count_tokens` for Claude models:
 ```python
 from anthropic import Anthropic, APIError
-client = Anthropic()  # reads ANTHROPIC_API_KEY from env
+client = Anthropic()  # uses your configured Anthropic API key
 
 @app.post("/chat")
 async def chat(request: ChatRequest, user: User = Depends(get_current_user)):
@@ -173,7 +173,7 @@ Everything in Level A, plus:
 - **Evidence:** OWASP LLM10 recommended controls, documented denial-of-wallet incidents
 - **Known bypasses:** Distributed attacks across many accounts, token estimation inaccuracies exploited to exceed true budget, slow-drip attacks staying just under thresholds
 - **Inherent limitations (will not be fixed — see SCOPE.md "Permanent Inherent Limitations"):** Token estimation heuristic (`len/4`) systematically underestimates for non-Latin scripts — production deployments must use a real tokenizer (`client.messages.count_tokens()`). Indirect prompt injection is not addressed by this skill — see Secure External Ingestion and System Prompt Design.
-- **Known reference-implementation gap (planned fix, not permanent — see SCOPE.md "Known Limitations — Reference Implementation Gaps"):** In-memory state (budget limiter, spend monitor, kill switch) is single-process only and silently degrades to per-worker limits under multi-process/multi-pod deployment — the effective budget scales with worker count, not the configured value. This skill does not currently ask about deployment topology or offer a Redis-backed alternative; tracked in CHANGELOG.md Roadmap (v1.0.3).
+- **Known reference-implementation gap (planned fix, not permanent — see SCOPE.md "Known Limitations — Reference Implementation Gaps"):** In-memory state (budget limiter, spend monitor, kill switch) is single-process only and silently degrades to per-worker limits under multi-process/multi-pod deployment — the effective budget scales with worker count, not the configured value. This skill does not currently ask about deployment topology or offer a Redis-backed alternative; tracked in CHANGELOG.md Roadmap (v1.0.4).
 - **Requires layering with:** Input sanitization (Skill 1), output validation (Skill 3), system prompt design (Skill 4)
 
 **Tradeoff:** Moderate complexity, strong cost risk reduction. Mitigates denial-of-wallet and basic abuse; sophisticated attackers may find creative bypasses.
@@ -313,7 +313,7 @@ When you apply any mitigation pattern from this skill, follow the annotation for
 
 - **OWASP ID:** `LLM01/LLM10 (Endpoint Hardening)`
 - **Pattern:** `token_budget_limiter`
-- **Applied by:** `llm-secure-patterns v1.0.2 / LLM Endpoint Hardening`
+- **Applied by:** `llm-secure-patterns v1.0.3 / LLM Endpoint Hardening`
 
 ## What this skill does NOT cover (additional security layers suggested)
 
